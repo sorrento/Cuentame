@@ -61,7 +61,7 @@ public class MainActivity extends AppCompatActivity {
     private MediaSession mMediaSession;
     private BroadcastReceiver eventsReceiver;
     //    private int nChapters = 0;
-    private Book currentBook;
+    private BookSummary currentBook;
     private String tag2 = "ACT";
 
     public void setCurrentChapter(final Chapter currentChapter) {
@@ -241,13 +241,18 @@ public class MainActivity extends AppCompatActivity {
                     final int iBook = new Random().nextInt(nBooks + 1);
 
 
-                    bookCallback popo = new bookCallback() {
+                    BookSumCallback popo = new BookSumCallback() {
                         @Override
-                        public void onRecived(Book book) {
+                        public void onReceived(BookSummary book) {
                             final int iChapter = new Random().nextInt(book.nChapters() + 1);
                             // myLog.add(tag, "        nLibros: " + nBooks + " | iLibro: " + iBook + " | nChapters: " + nChapters + " | iChapter: " + iChapter);
 
                             getChapterAndPlay(iBook, iChapter, chapters);
+
+                        }
+
+                        @Override
+                        public void onError(String text, ParseException e) {
 
                         }
                     };
@@ -264,15 +269,15 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-    private void getBook(final int iBook, final bookCallback cb) {
-        ParseQuery<Book> q2 = ParseQuery.getQuery(Book.class);
+    private void getBook(final int iBook, final BookSumCallback cb) {
+        ParseQuery<BookSummary> q2 = ParseQuery.getQuery(BookSummary.class);
         q2.whereEqualTo("libroId", iBook);
-        q2.getFirstInBackground(new GetCallback<Book>() {
+        q2.getFirstInBackground(new GetCallback<BookSummary>() {
             @Override
-            public void done(Book book, ParseException e) {
+            public void done(BookSummary book, ParseException e) {
                 if (e == null) {
                     currentBook = book;
-                    cb.onRecived(book);
+                    cb.onReceived(book);
 //                    nChapters = object.getInt("nCapitulos");
 //                    myLog.add(tag, "    TIENE CHAPTERS:" + nChapters);
 
@@ -286,9 +291,9 @@ public class MainActivity extends AppCompatActivity {
     private void getChapterAndPlay(final int iBook, final int iChapter, final int nChapters) {
         final String fi = "nCapitulo";
 
-        bookCallback cb = new bookCallback() {
+        BookSumCallback cb = new BookSumCallback() {
             @Override
-            public void onRecived(Book book) {
+            public void onReceived(BookSummary book) {
                 ParseQuery<Chapter> q = ParseQuery.getQuery(Chapter.class);
                 q.whereEqualTo("nLibro", iBook);
                 q.whereGreaterThanOrEqualTo(fi, iChapter);
@@ -322,6 +327,11 @@ public class MainActivity extends AppCompatActivity {
                         }
                     }
                 });
+            }
+
+            @Override
+            public void onError(String text, ParseException e) {
+
             }
         };
 

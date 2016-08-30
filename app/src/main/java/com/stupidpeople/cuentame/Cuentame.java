@@ -12,10 +12,9 @@ public class Cuentame extends Application {
     @Override
     public void onCreate() {
         super.onCreate();
-//        Parse.enableLocalDatastore(this);
+        Parse.enableLocalDatastore(this);
         ParseObject.registerSubclass(Chapter.class);
-        ParseObject.registerSubclass(Book.class);
-//        ParseObject.registerSubclass(WifiSpot.class);
+        ParseObject.registerSubclass(BookSummary.class);
         Parse.initialize(this, "CADa4nX2Lx29QEJlC3LUY1snbjq9zySlF5S3YSVG", "hC9VWCmGEBxb9fSGQPiOjSInaAPnYMZ0t8k3V0UO");
     }
 }

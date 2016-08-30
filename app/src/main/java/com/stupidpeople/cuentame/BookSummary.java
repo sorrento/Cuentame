@@ -12,7 +12,7 @@ import com.parse.ParseObject;
  * Created by Milenko on 22/08/2016.
  */
 @ParseClassName("librosSum")
-public class Book extends ParseObject {
+public class BookSummary extends ParseObject {
     public String fakeAuthor() {
         return getString("fakeAuthor");
     }
@@ -50,5 +50,9 @@ public class Book extends ParseObject {
             e.printStackTrace();
         }
         return bm;
+    }
+
+    public int getId() {
+        return getInt("libroId");
     }
 }

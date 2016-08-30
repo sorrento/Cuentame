@@ -64,6 +64,8 @@ public class Chapter extends ParseObject {
         String te = getText();
         te = te.replaceAll(" —", ", ");
         te = te.replaceAll("—", "");
+        te = te.replaceAll("–¿", "¿");
+        te = te.replaceAll("–¡", "¡");
         te = te.replaceAll("No\\.", "No . ");
         te = te.replaceAll("pie", "píe");
 //        Log.d("mhp", "")
@@ -71,11 +73,16 @@ public class Chapter extends ParseObject {
     }
 
     public String shortDescription() {
-        return getBookName() + "(" + getBookId() + "|" + getChapterId() + ")- [" + getText().substring(0, 40).replaceAll("\n", " ") + "]";
+        final String tt = getText();
+        final int i = 40;
+
+        String substring = tt.length() < i ? tt : tt.substring(0, i);
+
+        return shortestDescription() + " - [" + substring.replaceAll("\n", " ") + "]";
     }
 
     public String shortestDescription() {
-        return getBookName() + "(" + getBookId() + "|" + getChapterId() + ")";
+        return getBookName() + "(" + getChapterId() + "|" + getBookId() + ")";
     }
 
 }

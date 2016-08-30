@@ -1,0 +1,50 @@
+	.- al quitar la notif, que se calle
+	.- quitar la notif al cerrar la app
+	.- al quitar la notif se estropea lo que el bnoton de paisa cambie
+
+
+
+
+
+---- alto
+cuando se borra los internos en parse?
+	- que se guarde en interno
+			- la primera vez que se enciende, cargar un libro completo
+		- cuando se han escuchado 20 fragmentos del mismo, cargarlo entero
+		- buscar primero en local, sino se encuentra, online
+		 	- si no está conectado, mostrar mensaje y poner algo de lo que ya está
+	- que no repita los que no quiero
+
+	- arreglar el que se desarrolla en diferentes hilos
+	- hacer servicio?
+	- widget
+
+
+---- medio
+- si quedan menos de 50 en memoria, cargar otro pack
+	- sacudida para detener
+	- poner icono
+	- quitar activitidad
+	- sin internet, que se guarde
+	- que los libros que no gustan los pruebe sólo 3 veces
+
+---- detalles
+	- quitar la hora
+	- btones tienen borde gris
+	- se puede hacer que la notificación esté grande?
+	- poner mas frases gentiles [para lo mismo]
+	- al quitar auricular que se pare
+		http://stackoverflow.com/questions/13610258/how-to-detect-when-a-user-plugs-headset-on-android-device-opposite-of-action-a
+---------------------------------------------------------
+
+- como que se desconecta lo que está sonando de la notificación o de la app
+
+--------------------------------------------
+	- al que funcione al salir de la actividad
+	- hacer widget en portada
+	- al salir de la app se le olvida cómo parar el sonido
+	- servicio para que no se interrumpa?
+	-pie,sos
+
+ /////////////////// nombre de engides y voces
+  [EngineInfo{name=com.samsung.SMT}, EngineInfo{name=com.google.android.tts},   EngineInfo{name=com.googlecode.eyesfree.espeak}]
