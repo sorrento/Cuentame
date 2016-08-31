@@ -1,5 +1,6 @@
 package com.stupidpeople.cuentame;
 
+import com.parse.DeleteCallback;
 import com.parse.FindCallback;
 import com.parse.GetCallback;
 import com.parse.ParseException;
@@ -119,7 +120,6 @@ public class parseHelper {
                                        };
 
                                        // PIN them
-
                                        ParseObject.pinAllInBackground(books, scb);
 
                                    } else {
@@ -181,5 +181,90 @@ public class parseHelper {
             }
         });
 
+    }
+
+    /**
+     * Guarda en local el libro completo
+     */
+    public static void importWholeBook(final int bookId, final TaskDoneCallback2 task) {
+
+        removeBooksInInternalStorage(new TaskDoneCallback2() {
+            @Override
+            public void onDone() {
+
+                // vemos cuantos capítulos tiene , para cargarlo por partes
+                getBookSummary(bookId, false, new BookSumCallback() {
+                    @Override
+                    public void onReceived(final BookSummary bookSummary) {
+
+                        getAndPinSummary(bookId, new TaskDoneCallback2() {
+                            @Override
+                            public void onDone() {
+                                myLog.add(tag, "DONE. Summary book pinned " + bookId);
+
+                                // Dividimos en partes, para cargar independientemente
+                                int nChapters = bookSummary.nChapters();
+                                final int chapsPerPart = 500;
+                                final int nParts = (int) Math.floor(nChapters / chapsPerPart);
+                                final int[] iPinnedParts = {0};
+
+                                myLog.add(tag, "Libro " + bookId + " tiene " + nChapters + " que dividemos en pedazos de " + chapsPerPart +
+                                        ", quedando " + nParts + "partes.");
+
+                                for (int i = 0; i < nParts; i++) {
+                                    final int iniChap = i * chapsPerPart;
+                                    getAndPinChapters(bookId, iniChap, chapsPerPart, new TaskDoneCallback2() {
+                                        @Override
+                                        public void onDone() {
+                                            myLog.add(tag, "DONE. Pinneados del libro " + bookId + " desde " + iniChap + " (+ " + chapsPerPart + ")");
+                                            iPinnedParts[0]++;
+                                            if (iPinnedParts[0] == nParts) task.onDone();
+                                        }
+
+                                        @Override
+                                        public void onError(String text, ParseException e) {
+                                            task.onError("pinneando chapters desde " + iniChap + " (+ " + chapsPerPart + ")", e);
+                                        }
+                                    });
+                                }
+
+                            }
+
+                            @Override
+                            public void onError(String text, ParseException e) {
+                                task.onError(text, e);
+                            }
+                        });
+
+                    }
+
+                    @Override
+                    public void onError(String text, ParseException e) {
+                        myLog.error(text, e);
+                    }
+                });
+
+            }
+
+            @Override
+            public void onError(String text, ParseException e) {
+                myLog.error(text, e);
+            }
+        });
+
+
+    }
+
+    private static void removeBooksInInternalStorage(final TaskDoneCallback2 task) {
+        ParseObject.unpinAllInBackground(new DeleteCallback() {
+            @Override
+            public void done(ParseException e) {
+                if (e == null) {
+                    task.onDone();
+                } else {
+                    task.onError("Removing internal storage books", e);
+                }
+            }
+        });
     }
 }
