@@ -20,6 +20,7 @@ interface BookContabilityCallBack {
  * veces por random (pensado para internal storage)
  */
 
+
 @ParseClassName("bookContability")
 public class BookContability extends ParseObject {
 
@@ -29,6 +30,9 @@ public class BookContability extends ParseObject {
     private static String colNJumpedIn = "nJumpedIn";
     private static String colIsFinished = "IsFinished";
     private static String colIsHated = "isHated";
+
+    public BookContability() {
+    }
 
     /**
      * save internally that we have finished the book
@@ -63,7 +67,6 @@ public class BookContability extends ParseObject {
                 ifobject.setFinishedBook();
             }
         })*/
-        ;
 
     }
 
@@ -111,7 +114,7 @@ public class BookContability extends ParseObject {
 
             @Override
             public void onError(String s, ParseException e) {
-                myLog.error("incrementing jumping in", e);
+                myLog.error("incrementing jumping in: " + s, e);
             }
         });
     }
@@ -131,14 +134,14 @@ public class BookContability extends ParseObject {
                     cb.onError("getting book contability. let create it", e);
 
                     final BookContability po = new BookContability();
-//                    final ParseObject po = ParseObject.create(BookContability.class);
+//                    final BookContability po = BookContability.create(BookContability.class);
 
                     po.put(colBookId, bookId);
                     po.put(colNJumpedIn, 1);
                     po.put(colIsFinished, false);
                     po.put(colIsHated, false);
 
-                    po.saveInBackground(new SaveCallback() {
+                    po.pinInBackground(new SaveCallback() {
                         @Override
                         public void done(ParseException e) {
                             if (e == null) {

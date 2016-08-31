@@ -8,7 +8,8 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
-import android.media.session.MediaSession;
+import android.hardware.Sensor;
+import android.hardware.SensorManager;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Build;
@@ -39,11 +40,10 @@ public class MainActivity extends AppCompatActivity {
     private static final String PREFS_LAST_BOOK = "last book";
     private static final String PREFS_FIRST_TIME = "first time";
     private static final String COURTESY = "courtesy";
-    private static final String LIKE = "popo";
-    private static final String PLAY = "play";
+    private static final String LIKE = "like";
+    private static final String PLAYPAUSE = "playpause";
     private static final String NEXT = "next";
-    final String JUMPEDIN = "nJumpedIn";
-    final String parseClassLeidos = "leidos";
+    private static final String STOP = "stop";
     final private String samsungEngine = "com.samsung.SMT";
     TextToSpeech t1;
     boolean entireBookMode = false;
@@ -62,11 +62,14 @@ public class MainActivity extends AppCompatActivity {
     private Button btnNext;
     private Button btnLike;
     private NotificationManager mNotificationManager;
-    private MediaSession mMediaSession;
     private BroadcastReceiver eventsReceiver;
-    //    private int nChapters = 0;
     private BookSummary currentBook;
     private String tag2 = "ACT";
+
+    // The following are used for the shake detection
+    private SensorManager mSensorManager;
+    private Sensor mAccelerometer;
+    private ShakeDetector mShakeDetector;
 
     public void setCurrentChapter(final Chapter currentChapter) {
         this.currentChapter = currentChapter;
@@ -89,6 +92,10 @@ public class MainActivity extends AppCompatActivity {
     protected void onDestroy() {
         super.onDestroy();
         this.unregisterReceiver(eventsReceiver);
+        settings.edit().putBoolean(PREFS_MODE, entireBookMode).commit();
+
+        // Add the following line to unregister the Sensor Manager onPause
+        mSensorManager.unregisterListener(mShakeDetector);
     }
 
     @Override
@@ -113,6 +120,29 @@ public class MainActivity extends AppCompatActivity {
         btnPlayStop = (Button) findViewById(R.id.btn_play_stop);
         btnNext = (Button) findViewById(R.id.btn_next);
         btnLike = (Button) findViewById(R.id.btn_like);
+
+        // ShakeDetector initialization
+        mSensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
+        mAccelerometer = mSensorManager
+                .getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
+        mShakeDetector = new ShakeDetector();
+        mShakeDetector.setOnShakeListener(new ShakeDetector.OnShakeListener() {
+
+            @Override
+            public void onShake(int count) {
+                /*
+                 * The following method, "handleShakeEvent(count):" is a stub //
+				 * method you would use to setup whatever you want done once the
+				 * device has been shook.
+				 */
+
+                Toast.makeText(MainActivity.this, "shake:" + count, Toast.LENGTH_SHORT).show();
+                onClickPlayStop(null);
+            }
+        });
+        // Add the following line to register the Session Manager Listener onResume
+        mSensorManager.registerListener(mShakeDetector, mAccelerometer, SensorManager.SENSOR_DELAY_UI);
+
 
 // service ///////////////
 //        Intent intent = new Intent( getApplicationContext(), MediaPlayerService.class );
@@ -168,7 +198,8 @@ public class MainActivity extends AppCompatActivity {
         eventsReceiver = new EventsReceiver();
         IntentFilter filter = new IntentFilter(LIKE);
         filter.addAction(NEXT);
-        filter.addAction(PLAY);
+        filter.addAction(PLAYPAUSE);
+        filter.addAction(STOP);
         this.registerReceiver(eventsReceiver, filter);
 
 //TODO ver otros sintentizadores buenos
@@ -179,18 +210,23 @@ public class MainActivity extends AppCompatActivity {
     private void showNotification() {
         Intent like = new Intent(LIKE);
         PendingIntent likePendingIntent = PendingIntent.getBroadcast(this, 1, like, PendingIntent.FLAG_UPDATE_CURRENT);
-        Intent play = new Intent(PLAY);
+
+        Intent play = new Intent(PLAYPAUSE);
         PendingIntent playPendingIntent = PendingIntent.getBroadcast(this, 1, play, PendingIntent.FLAG_UPDATE_CURRENT);
+
         Intent next = new Intent(NEXT);
         PendingIntent nextPendingIntent = PendingIntent.getBroadcast(this, 1, next, PendingIntent.FLAG_UPDATE_CURRENT);
+
+        Intent stop = new Intent(STOP);
+        PendingIntent stopPendingIntent = PendingIntent.getBroadcast(this, 1, stop, PendingIntent.FLAG_UPDATE_CURRENT);
 
         int iconPlayPause = t1.isSpeaking() ? android.R.drawable.ic_media_pause : android.R.drawable.ic_media_play;
         Notification notification = new NotificationCompat.Builder(this)
                 // Show controls on lock screen even when user hides sensitive content.
                 .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
                 .setSmallIcon(android.R.drawable.ic_media_play)
-                // Add media control buttons that invoke intents in your media service
-                .addAction(android.R.drawable.ic_media_previous, "Previous", likePendingIntent) // #0
+                        // Add media control buttons that invoke intents in your media service
+                .addAction(android.R.drawable.ic_media_rew, "Previous", likePendingIntent) // #0
 
                 .addAction(iconPlayPause, "Pause", playPendingIntent)  // #1
                 .addAction(android.R.drawable.ic_media_next, "Next", nextPendingIntent)     // #2
@@ -199,6 +235,8 @@ public class MainActivity extends AppCompatActivity {
                                 .setShowActionsInCompactView(1 /* #1: pause button */)
 //                        .setMediaSession( mMediaSession.getSessionToken()))
                 )
+                .setShowWhen(false)
+                .setDeleteIntent(stopPendingIntent)
                 .setContentTitle(currentBook.fakeTitle())
                 .setContentText(currentBook.fakeAuthor())
                 .setSubText(currentChapter.getChapterId() + "/" + currentBook.nChapters())
@@ -211,6 +249,8 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void courtesyMessage(String s) {
+        myLog.add(tag, "Courtesy: " + s);
+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             t1.speak(s, TextToSpeech.QUEUE_FLUSH, null, COURTESY);
         } else {
@@ -243,6 +283,8 @@ public class MainActivity extends AppCompatActivity {
                         final int nBooks = object.getInt("libroId");
                         final int iBook = new Random().nextInt(nBooks + 1);
 
+                        myLog.add(tag2, "RANDOM: elegido el libro:" + iBook + "/" + nBooks);
+
                         BookSumCallback callback = new BookSumCallback() {
                             @Override
                             public void onReceived(BookSummary bookSummary) {
@@ -261,7 +303,6 @@ public class MainActivity extends AppCompatActivity {
                         };
 
                         getBook(iBook, callback);
-
 
                     } else {
                         myLog.add(tag, "EEROR en getting the maximun book" + e.getLocalizedMessage());
@@ -305,28 +346,34 @@ public class MainActivity extends AppCompatActivity {
 
         BookSumCallback cb = new BookSumCallback() {
             @Override
-            public void onReceived(BookSummary book) {
+            public void onReceived(BookSummary bookSummary) {
                 ParseQuery<Chapter> q = ParseQuery.getQuery(Chapter.class);
                 q.whereEqualTo("nLibro", iBook);
                 q.whereGreaterThanOrEqualTo(fi, iChapter);
                 q.whereLessThan(fi, iChapter + nChapters);
-                if (entireBookMode) q.fromLocalDatastore();
+                if (entireBookMode) {
+                    q.fromLocalDatastore();
+                    myLog.add(tag, "leido desde LOCAL");
+                } else {
+                    myLog.add(tag, "leido desde WEB");
+
+                }
                 q.orderByAscending(fi);
                 q.findInBackground(new FindCallback<Chapter>() {
                     @Override
-                    public void done(List<Chapter> books, ParseException e) {
+                    public void done(List<Chapter> chapters, ParseException e) {
                         if (e == null) {
-                            myLog.add(tag2, "--- Traidos capitulos:" + books.size() + "desde local?" + entireBookMode);
+                            myLog.add(tag2, "--- Traidos capitulos:" + chapters.size() + "desde local?" + entireBookMode);
 
-                            if (books.size() > 0) {
-                                setCurrentChapter(books.get(0));
+                            if (chapters.size() > 0) {
+                                setCurrentChapter(chapters.get(0));
                                 iBuffer = 0;
-                                chaptersPreLoaded = books;
+                                chaptersPreLoaded = chapters;
                                 playCurrentChapter();
 
                             } else { //Hemos llegado al final
                                 if (entireBookMode) {
-                                    courtesyMessage("...fin. Espero que te haya gustado tanto como a mi.");
+                                    courtesyMessage("Fin. Espero que te haya gustado tanto como a mi.");
                                     BookContability.setFinishedBook(currentBook);
                                 } else {
                                     getRandomChaptersAndPlay(10);
@@ -360,7 +407,11 @@ public class MainActivity extends AppCompatActivity {
         myLog.add(tag, "en playNext, ibffer=" + iBuffer);
 
         if (chaptersPreLoaded == null || iBuffer + 1 == chaptersPreLoaded.size()) { //Traer los siguientes
-            getChapterAndPlay(currentChapter.getBookId(), currentChapter.getChapterId() + 1, 10);
+            if (currentChapter == null) {
+                getRandomChaptersAndPlay(10);
+            } else {
+                getChapterAndPlay(currentChapter.getBookId(), currentChapter.getChapterId() + 1, 10);
+            }
 
         } else {
 
@@ -375,10 +426,13 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
+
     @Override
     protected void onResume() {
         super.onResume();
         myLog.add(tag2, "*********Resumuinf");
+
+
         if (!t1.isSpeaking() && currentChapter != null) {
             playCurrentChapter();
         }
@@ -453,6 +507,7 @@ public class MainActivity extends AppCompatActivity {
 
     public void onClickNext(View view) {
         interrupted = true;
+        entireBookMode = false;
         myLog.add(tag, "*********PRESSED NEXT");
         courtesyMessage("Vaya, no te ha gustado. Veamos otra cosa...");
 
@@ -467,7 +522,7 @@ public class MainActivity extends AppCompatActivity {
             }
         }, 2000);
 
-        entireBookMode = false;
+
 
         myLog.add(tag, "..Playnext porque cluckedNext");
         getRandomChaptersAndPlay(10);
@@ -482,14 +537,15 @@ public class MainActivity extends AppCompatActivity {
         if (isOnline()) {
             final int bookId = currentChapter.getBookId();
             courtesyMessage("Bueno, ya que te gusta el relato, veamo si recuerdo cómo empezaba...");
-            getChapterAndPlay(bookId, 1, 10);
-            entireBookMode = true;
             interrupted = true;
+            getChapterAndPlay(bookId, 1, 10);
+
 
             parseHelper.importWholeBook(bookId, new TaskDoneCallback2() {
                 @Override
                 public void onDone() {
                     myLog.add(tag, "DONE. book " + bookId + " load in internal storage");
+                    entireBookMode = true;
                 }
 
                 @Override
@@ -520,7 +576,6 @@ public class MainActivity extends AppCompatActivity {
 
         return b;
     }
-
 
 
     class uListener extends UtteranceProgressListener {
@@ -573,18 +628,19 @@ public class MainActivity extends AppCompatActivity {
             String action;
             try {
                 action = intent.getAction();
-                //Refresh
                 switch (action) {
                     case LIKE:
-//                    boolean forced = intent.getBooleanExtra("forced", true);
-                        myLog.add(tag, "apretado el botoónprv");
                         onClickLike(null);
                         break;
-                    case PLAY:
+                    case PLAYPAUSE:
                         onClickPlayStop(null);
                         break;
                     case NEXT:
                         onClickNext(null);
+                        break;
+                    case STOP:
+                        t1.stop();
+                        finish();
                         break;
                 }
             } catch (Exception e) {

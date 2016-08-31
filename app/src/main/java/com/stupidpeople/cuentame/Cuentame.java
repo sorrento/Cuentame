@@ -15,6 +15,7 @@ public class Cuentame extends Application {
         Parse.enableLocalDatastore(this);
         ParseObject.registerSubclass(Chapter.class);
         ParseObject.registerSubclass(BookSummary.class);
+        ParseObject.registerSubclass(BookContability.class);
         Parse.initialize(this, "CADa4nX2Lx29QEJlC3LUY1snbjq9zySlF5S3YSVG", "hC9VWCmGEBxb9fSGQPiOjSInaAPnYMZ0t8k3V0UO");
     }
 }

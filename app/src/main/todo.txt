@@ -8,6 +8,7 @@
 
 ---- alto
 cuando se borra los internos en parse?
+uqitar el guion cuando viene palabra
 	- que se guarde en interno
 			- la primera vez que se enciende, cargar un libro completo
 		- cuando se han escuchado 20 fragmentos del mismo, cargarlo entero

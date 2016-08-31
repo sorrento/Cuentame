@@ -205,11 +205,11 @@ public class parseHelper {
                                 // Dividimos en partes, para cargar independientemente
                                 int nChapters = bookSummary.nChapters();
                                 final int chapsPerPart = 500;
-                                final int nParts = (int) Math.floor(nChapters / chapsPerPart);
+                                final int nParts = (int) Math.ceil(nChapters / chapsPerPart);
                                 final int[] iPinnedParts = {0};
 
                                 myLog.add(tag, "Libro " + bookId + " tiene " + nChapters + " que dividemos en pedazos de " + chapsPerPart +
-                                        ", quedando " + nParts + "partes.");
+                                        ", quedando " + nParts + " partes.");
 
                                 for (int i = 0; i < nParts; i++) {
                                     final int iniChap = i * chapsPerPart;
