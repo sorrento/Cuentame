@@ -71,6 +71,8 @@ public class MainActivity extends AppCompatActivity {
     private Sensor mAccelerometer;
     private ShakeDetector mShakeDetector;
 
+    private String PINBOOK = "pinBook";
+
     public void setCurrentChapter(final Chapter currentChapter) {
         this.currentChapter = currentChapter;
 
@@ -113,7 +115,7 @@ public class MainActivity extends AppCompatActivity {
         lastBook = settings.getInt(PREFS_LAST_BOOK, 1);
         lastChapter = settings.getInt(PREFS_LAST_CHAPTER, 1);
 
-        myLog.add(tag, "RECUPERANDO: mode entireebook:" + entireBookMode + "lastbook: " + lastBook + " lastchap: " + lastChapter);
+        myLog.add(tag, "RECUPERANDO: mode entirebook: " + entireBookMode + " lastbook: " + lastBook + " lastchap: " + lastChapter);
 
         txtText = (TextView) findViewById(R.id.txtCurrentText);
         txtDesc = (TextView) findViewById(R.id.txtCurrentDesc);
@@ -130,24 +132,12 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void onShake(int count) {
-                /*
-                 * The following method, "handleShakeEvent(count):" is a stub //
-				 * method you would use to setup whatever you want done once the
-				 * device has been shook.
-				 */
-
                 Toast.makeText(MainActivity.this, "shake:" + count, Toast.LENGTH_SHORT).show();
                 onClickPlayStop(null);
             }
         });
         // Add the following line to register the Session Manager Listener onResume
         mSensorManager.registerListener(mShakeDetector, mAccelerometer, SensorManager.SENSOR_DELAY_UI);
-
-
-// service ///////////////
-//        Intent intent = new Intent( getApplicationContext(), MediaPlayerService.class );
-//        intent.setAction( MediaPlayerService.ACTION_PLAY );
-//        startService( intent );
 
 
         mNotificationManager =
@@ -177,7 +167,7 @@ public class MainActivity extends AppCompatActivity {
                                     getRandomChaptersAndPlay(10);
                                 } else {
                                     courtesyMessage("A ver donde me quedé... ");
-                                    getChapterAndPlay(lastBook, lastChapter, 10);
+                                    getChapterAndPlay(lastBook, lastChapter, 10, true);
                                 }
 
                                 //todo poner en español si es necesario
@@ -225,7 +215,7 @@ public class MainActivity extends AppCompatActivity {
                 // Show controls on lock screen even when user hides sensitive content.
                 .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
                 .setSmallIcon(android.R.drawable.ic_media_play)
-                        // Add media control buttons that invoke intents in your media service
+                // Add media control buttons that invoke intents in your media service
                 .addAction(android.R.drawable.ic_media_rew, "Previous", likePendingIntent) // #0
 
                 .addAction(iconPlayPause, "Pause", playPendingIntent)  // #1
@@ -292,7 +282,7 @@ public class MainActivity extends AppCompatActivity {
 
                                 BookContability.incrementJumpedInBook(bookSummary);
 
-                                getChapterAndPlay(iBook, iChapter, chapters);
+                                getChapterAndPlay(iBook, iChapter, chapters, false);
 
                             }
 
@@ -302,7 +292,7 @@ public class MainActivity extends AppCompatActivity {
                             }
                         };
 
-                        getBook(iBook, callback);
+                        parseHelper.getBookSummary(iBook, callback);
 
                     } else {
                         myLog.add(tag, "EEROR en getting the maximun book" + e.getLocalizedMessage());
@@ -315,55 +305,45 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private void getBook(final int iBook, final BookSumCallback cb) {
-        ParseQuery<BookSummary> q2 = ParseQuery.getQuery(BookSummary.class);
-        q2.whereEqualTo("libroId", iBook);
-        q2.getFirstInBackground(new GetCallback<BookSummary>() {
-            @Override
-            public void done(BookSummary book, ParseException e) {
-                if (e == null) {
-                    currentBook = book;
-                    cb.onReceived(book);
-//                    nChapters = object.getInt("nCapitulos");
-//                    myLog.add(tag, "    TIENE CHAPTERS:" + nChapters);
-
-                } else {
-                    myLog.add(tag, "___ERRROR getting the maximum chapter  for book:" + iBook + " | " + e.getLocalizedMessage());
-                }
-            }
-        });
-    }
+//    private void getBookSummary(final int iBook, final BookSumCallback cb) {
+//
+//        ParseQuery<BookSummary> q = ParseQuery.getQuery(BookSummary.class);
+//        q.whereEqualTo("libroId", iBook);
+//        if (entireBookMode) q.fromPin(PINBOOK);
+//
+//        q.getFirstInBackground(new GetCallback<BookSummary>() {
+//            @Override
+//            public void done(BookSummary book, ParseException e) {
+//                if (e == null) {
+//                    currentBook = book;
+//                    cb.onReceived(book);
+//                } else {
+//                    myLog.add(tag, "___ERRROR getting the maximum chapter  for book:" + iBook + " | " + e.getLocalizedMessage());
+//                }
+//            }
+//        });
+//    }
 
     /**
-     * Si está en modo lectura de todo el libro, lo busca en local, sino, en internet
+     * Lee de parse (local o no) y guarda en buffer (array) nchpater
      *
      * @param iBook
      * @param iChapter
-     * @param nChapters
+     * @param bufferSize
      */
-    private void getChapterAndPlay(final int iBook, final int iChapter, final int nChapters) {
+    private void getChapterAndPlay(final int iBook, final int iChapter, final int bufferSize, final boolean local) {
         final String fi = "nCapitulo";
 
         BookSumCallback cb = new BookSumCallback() {
             @Override
             public void onReceived(BookSummary bookSummary) {
-                ParseQuery<Chapter> q = ParseQuery.getQuery(Chapter.class);
-                q.whereEqualTo("nLibro", iBook);
-                q.whereGreaterThanOrEqualTo(fi, iChapter);
-                q.whereLessThan(fi, iChapter + nChapters);
-                if (entireBookMode) {
-                    q.fromLocalDatastore();
-                    myLog.add(tag, "leido desde LOCAL");
-                } else {
-                    myLog.add(tag, "leido desde WEB");
+                currentBook = bookSummary;
 
-                }
-                q.orderByAscending(fi);
-                q.findInBackground(new FindCallback<Chapter>() {
+                parseHelper.getChapters(iBook, iChapter, bufferSize, local, new FindCallback<Chapter>() {
                     @Override
                     public void done(List<Chapter> chapters, ParseException e) {
                         if (e == null) {
-                            myLog.add(tag2, "--- Traidos capitulos:" + chapters.size() + "desde local?" + entireBookMode);
+                            myLog.add(tag2, "--- Traidos capitulos:" + chapters.size() + "desde local?" + local);
 
                             if (chapters.size() > 0) {
                                 setCurrentChapter(chapters.get(0));
@@ -371,13 +351,22 @@ public class MainActivity extends AppCompatActivity {
                                 chaptersPreLoaded = chapters;
                                 playCurrentChapter();
 
-                            } else { //Hemos llegado al final
-                                if (entireBookMode) {
+                            } else {
+                                //Hemos llegado al final
+                                if (currentBook.nChapters() == currentChapter.getChapterId()) {
                                     courtesyMessage("Fin. Espero que te haya gustado tanto como a mi.");
-                                    BookContability.setFinishedBook(currentBook);
+                                    if (entireBookMode) {
+                                        BookContability.setFinishedBook(currentBook);
+                                    } else {
+                                        courtesyMessage("Ah, pero no lo habías oído desde el principio.");
+                                        onClickLike(null);
+                                    }
                                 } else {
+                                    myLog.add(tag, "como no hemos cargado chaps, ponemos random");
                                     getRandomChaptersAndPlay(10);
+
                                 }
+
                             }
 
                         } else {
@@ -385,6 +374,7 @@ public class MainActivity extends AppCompatActivity {
                         }
                     }
                 });
+
             }
 
             @Override
@@ -393,8 +383,7 @@ public class MainActivity extends AppCompatActivity {
             }
         };
 
-        getBook(iBook, cb);
-
+        parseHelper.getBookSummary(iBook, local, cb);
     }
 
     /**
@@ -402,15 +391,13 @@ public class MainActivity extends AppCompatActivity {
      */
 
     private void playNext() {
-        //TODO traer chapters antes de que acabe de leer
-        //        boolean inMemory = false;
-        myLog.add(tag, "en playNext, ibffer=" + iBuffer);
+        myLog.add(tag, "en playNext, ibffer = " + iBuffer);
 
         if (chaptersPreLoaded == null || iBuffer + 1 == chaptersPreLoaded.size()) { //Traer los siguientes
             if (currentChapter == null) {
                 getRandomChaptersAndPlay(10);
             } else {
-                getChapterAndPlay(currentChapter.getBookId(), currentChapter.getChapterId() + 1, 10);
+                getChapterAndPlay(currentChapter.getBookId(), currentChapter.getChapterId() + 1, 10, entireBookMode);
             }
 
         } else {
@@ -523,7 +510,6 @@ public class MainActivity extends AppCompatActivity {
         }, 2000);
 
 
-
         myLog.add(tag, "..Playnext porque cluckedNext");
         getRandomChaptersAndPlay(10);
     }
@@ -538,13 +524,13 @@ public class MainActivity extends AppCompatActivity {
             final int bookId = currentChapter.getBookId();
             courtesyMessage("Bueno, ya que te gusta el relato, veamo si recuerdo cómo empezaba...");
             interrupted = true;
-            getChapterAndPlay(bookId, 1, 10);
+            getChapterAndPlay(bookId, 1, 10, false);
 
 
             parseHelper.importWholeBook(bookId, new TaskDoneCallback2() {
                 @Override
                 public void onDone() {
-                    myLog.add(tag, "DONE. book " + bookId + " load in internal storage");
+                    myLog.add(tag, "DONE. book " + bookId + " loaded in internal storage");
                     entireBookMode = true;
                 }
 
