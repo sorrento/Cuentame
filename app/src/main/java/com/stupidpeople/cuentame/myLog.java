@@ -4,8 +4,6 @@ package com.stupidpeople.cuentame;
 import android.os.Environment;
 import android.util.Log;
 
-import com.parse.ParseException;
-
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
@@ -95,7 +93,7 @@ public class myLog {
         return sdf.format(new Date());
     }
 
-    public static void error(String text, ParseException e) {
+    public static void error(String text, Exception e) {
         add("ERROR", text + " | " + e.getLocalizedMessage());
     }
 }

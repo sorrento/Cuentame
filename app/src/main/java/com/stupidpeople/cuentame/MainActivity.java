@@ -31,6 +31,7 @@ import com.parse.ParseQuery;
 
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Random;
 
 public class MainActivity extends AppCompatActivity {
@@ -39,6 +40,7 @@ public class MainActivity extends AppCompatActivity {
     private static final String PREFS_LAST_CHAPTER = "last chapter";
     private static final String PREFS_LAST_BOOK = "last book";
     private static final String PREFS_FIRST_TIME = "first time";
+
     private static final String COURTESY = "courtesy";
     private static final String LIKE = "like";
     private static final String PLAYPAUSE = "playpause";
@@ -48,11 +50,14 @@ public class MainActivity extends AppCompatActivity {
     TextToSpeech t1;
     boolean entireBookMode = false;
     private String tag = "mhp";
+
     private Chapter currentChapter;
     private List<Chapter> chaptersPreLoaded;
+
     private TextView txtText;
     private TextView txtDesc;
     private Button btnPlayStop;
+
     private boolean interrupted = false;
     private int iBuffer = 0;
     private int lastBook;
@@ -66,39 +71,17 @@ public class MainActivity extends AppCompatActivity {
     private BookSummary currentBook;
     private String tag2 = "ACT";
 
-    // The following are used for the shake detection
+    // Shake
     private SensorManager mSensorManager;
     private Sensor mAccelerometer;
     private ShakeDetector mShakeDetector;
 
     private String PINBOOK = "pinBook";
 
-    public void setCurrentChapter(final Chapter currentChapter) {
-        this.currentChapter = currentChapter;
-
-        settings.edit().putInt(PREFS_LAST_BOOK, currentChapter.getBookId()).commit();
-        settings.edit().putInt(PREFS_LAST_CHAPTER, currentChapter.getChapterId()).commit();
-
-
-        this.runOnUiThread(
-                new Runnable() {
-                    @Override
-                    public void run() {
-                        txtText.setText(currentChapter.getText());
-                        txtDesc.setText(currentChapter.toString());
-                    }
-                });
-    }
-
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        this.unregisterReceiver(eventsReceiver);
-        settings.edit().putBoolean(PREFS_MODE, entireBookMode).commit();
-
-        // Add the following line to unregister the Sensor Manager onPause
-        mSensorManager.unregisterListener(mShakeDetector);
-    }
+    //TODO
+    // leer el idiooma y  poner el reproductor correcto
+    // poner si chapter es cancion o no
+    //
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -170,11 +153,6 @@ public class MainActivity extends AppCompatActivity {
                                     getChapterAndPlay(lastBook, lastChapter, 10, true);
                                 }
 
-                                //todo poner en español si es necesario
-
-                                //                    t1.setLanguage(Locale.UK);
-                                //                    fixed Locale spanish = new Locale("es", "ES"); c.locale = spanish; this works THA
-                                //                     Locale spanish = new Locale("es", "ES"); c.locale = spanish; this works THA
                             }
                         }
                     }, engine);
@@ -192,9 +170,64 @@ public class MainActivity extends AppCompatActivity {
         filter.addAction(STOP);
         this.registerReceiver(eventsReceiver, filter);
 
-//TODO ver otros sintentizadores buenos
-        //oner un dialog en vez de n toast
+        //TODO ver otros sintentizadores buenos
+        //poner un dialog en vez de n toast
 
+    }
+
+    private void setSpeakLanguage(String lan) {
+//        fixed Locale spanish = new Locale("es", "ES"); c.locale = spanish; //this works THA
+        switch (lan) {
+            case "ES":
+//                Configuration c = new Configuration(getResources().getConfiguration());
+                Locale spanish = new Locale("es", "ES");
+//                c.locale = spanish; //this works THA
+                t1.setLanguage(spanish);
+                break;
+            case "EN":
+                t1.setLanguage(Locale.ENGLISH);
+                //t1.setLanguage(Locale.UK);
+                break;
+        }
+    }
+
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        myLog.add(tag2, "*********Resumuinf");
+
+
+        if (!t1.isSpeaking() && currentChapter != null) {
+            playCurrentChapter();
+        }
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        this.unregisterReceiver(eventsReceiver);
+        settings.edit().putBoolean(PREFS_MODE, entireBookMode).commit();
+
+        // Add the following line to unregister the Sensor Manager onPause
+        mSensorManager.unregisterListener(mShakeDetector);
+    }
+
+    public void setCurrentChapter(final Chapter currentChapter) {
+        this.currentChapter = currentChapter;
+
+        settings.edit().putInt(PREFS_LAST_BOOK, currentChapter.getBookId()).commit();
+        settings.edit().putInt(PREFS_LAST_CHAPTER, currentChapter.getChapterId()).commit();
+
+
+        this.runOnUiThread(
+                new Runnable() {
+                    @Override
+                    public void run() {
+                        txtText.setText(currentChapter.getText());
+                        txtDesc.setText(currentChapter.toString());
+                    }
+                });
     }
 
     private void showNotification() {
@@ -258,6 +291,7 @@ public class MainActivity extends AppCompatActivity {
                 " Vamos a ver...");
     }
 
+    //Play
     private void getRandomChaptersAndPlay(final int chapters) {
 
         if (isOnline()) {
@@ -304,25 +338,6 @@ public class MainActivity extends AppCompatActivity {
             courtesyMessage("Tengo un problema, no puedo recordar más historias. Si conectas internet, seguro que me refresca la memoria.");
         }
     }
-
-//    private void getBookSummary(final int iBook, final BookSumCallback cb) {
-//
-//        ParseQuery<BookSummary> q = ParseQuery.getQuery(BookSummary.class);
-//        q.whereEqualTo("libroId", iBook);
-//        if (entireBookMode) q.fromPin(PINBOOK);
-//
-//        q.getFirstInBackground(new GetCallback<BookSummary>() {
-//            @Override
-//            public void done(BookSummary book, ParseException e) {
-//                if (e == null) {
-//                    currentBook = book;
-//                    cb.onReceived(book);
-//                } else {
-//                    myLog.add(tag, "___ERRROR getting the maximum chapter  for book:" + iBook + " | " + e.getLocalizedMessage());
-//                }
-//            }
-//        });
-//    }
 
     /**
      * Lee de parse (local o no) y guarda en buffer (array) nchpater
@@ -389,7 +404,6 @@ public class MainActivity extends AppCompatActivity {
     /**
      * Empieza el siguiente del buffer, y se si ha acabado, trae los siguients
      */
-
     private void playNext() {
         myLog.add(tag, "en playNext, ibffer = " + iBuffer);
 
@@ -411,18 +425,6 @@ public class MainActivity extends AppCompatActivity {
         }
 
 
-    }
-
-
-    @Override
-    protected void onResume() {
-        super.onResume();
-        myLog.add(tag2, "*********Resumuinf");
-
-
-        if (!t1.isSpeaking() && currentChapter != null) {
-            playCurrentChapter();
-        }
     }
 
     private void playCurrentChapter() {
@@ -468,7 +470,6 @@ public class MainActivity extends AppCompatActivity {
         }
         return engine;
     }
-
 
     public void onClickPlayStop(View view) {
 
@@ -562,7 +563,6 @@ public class MainActivity extends AppCompatActivity {
 
         return b;
     }
-
 
     class uListener extends UtteranceProgressListener {
         @Override

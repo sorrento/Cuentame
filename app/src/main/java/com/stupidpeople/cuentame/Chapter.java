@@ -39,6 +39,15 @@ public class Chapter extends ParseObject {
         return nCapitulo;
     }
 
+    public String getLanguage() {
+        return "language";
+    }
+
+    public boolean isSong() {
+        return getBoolean("isSong");
+    }
+
+
     @Override
     public String toString() {
         return "Chapter{" +
