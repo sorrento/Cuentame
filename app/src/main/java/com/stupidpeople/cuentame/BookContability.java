@@ -24,12 +24,12 @@ interface BookContabilityCallBack {
 @ParseClassName("bookContability")
 public class BookContability extends ParseObject {
 
+    public static String colIsMusic = "isMusic";
+    static String colNJumpedIn = "nJumpedIn";
+    static String colIsHated = "isHated";
     private static String tag = "BC";
-
     private static String colBookId = "bookId";
-    private static String colNJumpedIn = "nJumpedIn";
     private static String colIsFinished = "IsFinished";
-    private static String colIsHated = "isHated";
 
     public BookContability() {
     }
@@ -40,7 +40,7 @@ public class BookContability extends ParseObject {
      * @param bookSummary
      */
     static void setFinishedBook(final BookSummary bookSummary) {
-        getOrCreateBookContability(bookSummary.getId(), new BookContabilityCallBack() {
+        getOrCreateBookContability(bookSummary.getId(), bookSummary.isMusic(), new BookContabilityCallBack() {
             @Override
             public void onDone(BookContability bookContability) {
                 bookContability.setFinished(true);
@@ -71,7 +71,7 @@ public class BookContability extends ParseObject {
     }
 
     static void setHatedBook(final BookSummary bookSummary) {
-        getOrCreateBookContability(bookSummary.getId(), new BookContabilityCallBack() {
+        getOrCreateBookContability(bookSummary.getId(), bookSummary.isMusic(), new BookContabilityCallBack() {
             @Override
             public void onDone(BookContability bookContability) {
                 bookContability.setHated(true);
@@ -93,7 +93,7 @@ public class BookContability extends ParseObject {
     }
 
     static void incrementJumpedInBook(final BookSummary bookSummary) {
-        getOrCreateBookContability(bookSummary.getId(), new BookContabilityCallBack() {
+        getOrCreateBookContability(bookSummary.getId(), bookSummary.isMusic(), new BookContabilityCallBack() {
             @Override
             public void onDone(BookContability bookContability) {
                 bookContability.incrementJumpedIn();
@@ -120,7 +120,7 @@ public class BookContability extends ParseObject {
     }
 
     // si está en local, lo trae, sino , lo crea
-    private static void getOrCreateBookContability(final int bookId, final BookContabilityCallBack cb) {
+    private static void getOrCreateBookContability(final int bookId, final boolean isMusic, final BookContabilityCallBack cb) {
         // veamos si ya está
         ParseQuery<BookContability> q = ParseQuery.getQuery(BookContability.class);
         q.whereEqualTo("bookId", bookId);
@@ -140,6 +140,8 @@ public class BookContability extends ParseObject {
                     po.put(colNJumpedIn, 1);
                     po.put(colIsFinished, false);
                     po.put(colIsHated, false);
+                    po.put(colIsMusic, isMusic);
+
 
                     po.pinInBackground(new SaveCallback() {
                         @Override
@@ -175,5 +177,9 @@ public class BookContability extends ParseObject {
 
     private void setFinished(boolean b) {
         put(colIsFinished, b);
+    }
+
+    public Integer getBookId() {
+        return getInt(colBookId);
     }
 }

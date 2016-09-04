@@ -11,13 +11,14 @@ import com.parse.ParseObject;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.Random;
 
 /**
  * Created by Milenko on 22/08/2016.
  */
 @ParseClassName("librosSum")
 public class BookSummary extends ParseObject {
+    private Bitmap bm = null;
+
     public String fakeAuthor() {
         return isMusic() ? getAuthor() : getString("fakeAuthor");
     }
@@ -50,28 +51,38 @@ public class BookSummary extends ParseObject {
 
     public Bitmap getImageBitmap() {
 
-        Bitmap bm = null;
-
         if (isMusic()) {
-            boolean loadedOk = false;
-            Random random = new Random();
-            int i;
-            URL url;
+            if (bm != null) {
+                return bm;
 
-            do {
-                i = random.nextInt(30);
+            } else {
+                boolean loadedOk = false;
+//                Random random = new Random();
+//                int i;
+                URL url;
                 try {
-                    url = new URL("http://fotos.musicaimg.com/minifotos/0_" + getId() + "_" + i + ".jpg");
+                    url = new URL("http://fotos.musicaimg.com/minifotos/0_" + getId() + "_" + "1" + ".jpg");
                     bm = BitmapFactory.decodeStream(url.openConnection().getInputStream());
-                    loadedOk = true;
                 } catch (MalformedURLException e) {
                     myLog.error("url para imagen", e);
                 } catch (IOException e) {
                     myLog.error("cargando imagen para el grupo.", e);
                 }
-            } while (loadedOk);
+//                do {
+////                    i = random.nextInt(5)+1;
+//                    i = 1;
+//                    try {
+//                        url = new URL("http://fotos.musicaimg.com/minifotos/0_" + getId() + "_" + i + ".jpg");
+//                        bm = BitmapFactory.decodeStream(url.openConnection().getInputStream());
+//                        loadedOk = true;
+//                    } catch (MalformedURLException e) {
+//                        myLog.error("url para imagen", e);
+//                    } catch (IOException e) {
+//                        myLog.error("cargando imagen para el grupo.", e);
+//                    }
+//                } while (loadedOk);
 
-
+            }
         } else {
 
             try {

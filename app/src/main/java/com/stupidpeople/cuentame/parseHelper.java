@@ -8,6 +8,7 @@ import com.parse.ParseObject;
 import com.parse.ParseQuery;
 import com.parse.SaveCallback;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -278,5 +279,53 @@ public class parseHelper {
                 }
             }
         });
+    }
+
+    /**
+     * obtiene los ids de las bandas que no quiere oir
+     *
+     * @return
+     */
+    static ArrayList<Integer> getHatedBandsIds() {
+        ArrayList<Integer> arr = new ArrayList();
+        ParseQuery<BookContability> q = ParseQuery.getQuery(BookContability.class);
+        q.whereEqualTo(BookContability.colIsHated, true);
+        q.whereEqualTo(BookContability.colIsMusic, true);
+        q.fromLocalDatastore();
+        try {
+            List<BookContability> sol = q.find();
+            myLog.add(tag, "numero de bandas odiadas:" + sol.size());
+            for (BookContability bookContability : sol) {
+                myLog.add(tag, "  ej:" + bookContability.getBookId());
+                arr.add(bookContability.getBookId());
+            }
+        } catch (ParseException e) {
+            myLog.error("trayendo del local las bandas odiadas", e);
+        }
+        return arr;
+    }
+
+    /**
+     * obtiene los ids de las bandas que no quiere oir
+     *
+     * @return
+     */
+    static ArrayList<Integer> getHatedBooksIds() {
+        ArrayList<Integer> arr = new ArrayList();
+        ParseQuery<BookContability> q = ParseQuery.getQuery(BookContability.class);
+        q.whereEqualTo(BookContability.colIsMusic, false);
+        q.whereEqualTo(BookContability.colIsHated, true);
+        q.fromLocalDatastore();
+        try {
+            List<BookContability> sol = q.find();
+            myLog.add(tag, "numero de libros  odiadas:" + sol.size());
+            for (BookContability bookContability : sol) {
+                myLog.add(tag, "  ej:" + bookContability.getBookId());
+                arr.add(bookContability.getBookId());
+            }
+        } catch (ParseException e) {
+            myLog.error("trayendo del local los libros odiados", e);
+        }
+        return arr;
     }
 }

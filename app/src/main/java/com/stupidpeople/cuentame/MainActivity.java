@@ -26,7 +26,6 @@ import android.widget.Toast;
 import com.parse.FindCallback;
 import com.parse.GetCallback;
 import com.parse.ParseException;
-import com.parse.ParseObject;
 import com.parse.ParseQuery;
 
 import java.util.HashMap;
@@ -37,6 +36,7 @@ import java.util.Random;
 public class MainActivity extends AppCompatActivity {
 
     private static final String PREFS_MODE = "mode";
+    private static final String PREFS_MODE_MUSIC = "music";
     private static final String PREFS_LAST_CHAPTER = "last chapter";
     private static final String PREFS_LAST_BOOK = "last book";
     private static final String PREFS_FIRST_TIME = "first time";
@@ -46,9 +46,12 @@ public class MainActivity extends AppCompatActivity {
     private static final String PLAYPAUSE = "playpause";
     private static final String NEXT = "next";
     private static final String STOP = "stop";
+    private static final String MUSICBOOK = "musicBook";
+
     final private String samsungEngine = "com.samsung.SMT";
     TextToSpeech t1;
     boolean entireBookMode = false;
+    boolean musicMode = false;
     private String tag = "mhp";
 
     private Chapter currentChapter;
@@ -76,7 +79,8 @@ public class MainActivity extends AppCompatActivity {
     private Sensor mAccelerometer;
     private ShakeDetector mShakeDetector;
 
-    private String PINBOOK = "pinBook";
+    private List<BookSummary> allBandsSum = null;
+    private boolean isShowingLyricsNotification = false;
 
     //TODO
     // leer el idiooma y  poner el reproductor correcto
@@ -94,11 +98,12 @@ public class MainActivity extends AppCompatActivity {
         settings = getPreferences(MODE_PRIVATE);
 
         entireBookMode = settings.getBoolean(PREFS_MODE, false);
+        musicMode = settings.getBoolean(PREFS_MODE_MUSIC, false);
 
         lastBook = settings.getInt(PREFS_LAST_BOOK, 1);
         lastChapter = settings.getInt(PREFS_LAST_CHAPTER, 1);
 
-        myLog.add(tag, "RECUPERANDO: mode entirebook: " + entireBookMode + " lastbook: " + lastBook + " lastchap: " + lastChapter);
+        myLog.add(tag2, "RECUPERANDO: mode entirebook: " + entireBookMode + " lastbook: " + lastBook + " lastchap: " + lastChapter);
 
         txtText = (TextView) findViewById(R.id.txtCurrentText);
         txtDesc = (TextView) findViewById(R.id.txtCurrentDesc);
@@ -168,6 +173,7 @@ public class MainActivity extends AppCompatActivity {
         filter.addAction(NEXT);
         filter.addAction(PLAYPAUSE);
         filter.addAction(STOP);
+        filter.addAction(MUSICBOOK);
         this.registerReceiver(eventsReceiver, filter);
 
         //TODO ver otros sintentizadores buenos
@@ -208,6 +214,7 @@ public class MainActivity extends AppCompatActivity {
         super.onDestroy();
         this.unregisterReceiver(eventsReceiver);
         settings.edit().putBoolean(PREFS_MODE, entireBookMode).commit();
+        settings.edit().putBoolean(PREFS_MODE_MUSIC, musicMode).commit();
 
         // Add the following line to unregister the Sensor Manager onPause
         mSensorManager.unregisterListener(mShakeDetector);
@@ -230,7 +237,8 @@ public class MainActivity extends AppCompatActivity {
                 });
     }
 
-    private void showNotification() {
+    private void showMediaNotification() {
+
         Intent like = new Intent(LIKE);
         PendingIntent likePendingIntent = PendingIntent.getBroadcast(this, 1, like, PendingIntent.FLAG_UPDATE_CURRENT);
 
@@ -243,16 +251,24 @@ public class MainActivity extends AppCompatActivity {
         Intent stop = new Intent(STOP);
         PendingIntent stopPendingIntent = PendingIntent.getBroadcast(this, 1, stop, PendingIntent.FLAG_UPDATE_CURRENT);
 
+        Intent musicBook = new Intent(MUSICBOOK);
+        PendingIntent musicBookPendingIntent = PendingIntent.getBroadcast(this, 1, musicBook, PendingIntent.FLAG_UPDATE_CURRENT);
+
         int iconPlayPause = t1.isSpeaking() ? android.R.drawable.ic_media_pause : android.R.drawable.ic_media_play;
+        int iconMusicBook = musicMode ? R.drawable.ic_music_note_white_24dp : R.drawable.ic_book;
+
+        String title = currentChapter.isSong() ? currentChapter.getBookName() : currentBook.fakeTitle();
+        String content = currentChapter.isSong() ? currentChapter.getAuthor() : currentBook.fakeAuthor();
+
         Notification notification = new NotificationCompat.Builder(this)
                 // Show controls on lock screen even when user hides sensitive content.
                 .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
                 .setSmallIcon(android.R.drawable.ic_media_play)
-                // Add media control buttons that invoke intents in your media service
+                        // Add media control buttons that invoke intents in your media service
                 .addAction(android.R.drawable.ic_media_rew, "Previous", likePendingIntent) // #0
-
                 .addAction(iconPlayPause, "Pause", playPendingIntent)  // #1
                 .addAction(android.R.drawable.ic_media_next, "Next", nextPendingIntent)     // #2
+                .addAction(iconMusicBook, "MusicBook", musicBookPendingIntent)     // #3
 //                        // Apply the media style template
                 .setStyle(new NotificationCompat.MediaStyle()
                                 .setShowActionsInCompactView(1 /* #1: pause button */)
@@ -260,19 +276,45 @@ public class MainActivity extends AppCompatActivity {
                 )
                 .setShowWhen(false)
                 .setDeleteIntent(stopPendingIntent)
-                .setContentTitle(currentBook.fakeTitle())
-                .setContentText(currentBook.fakeAuthor())
+                .setContentTitle(title)
+                .setContentText(content)
                 .setSubText(currentChapter.getChapterId() + "/" + currentBook.nChapters())
                 .setProgress(currentBook.nChapters(), currentChapter.getChapterId(), false)
                 .setLargeIcon(currentBook.getImageBitmap())
                 .setTicker(currentBook.fakeTitle() + "\n" + currentBook.fakeAuthor())
+
                 .build();
-// mId allows you to update the notification later on.
+        // mId allows you to update the notification later on.
         mNotificationManager.notify(1, notification);
+    }
+
+    private void showLyricsNotification() {
+
+        Notification notification = new NotificationCompat.Builder(this)
+                // Show controls on lock screen even when user hides sensitive content.
+                .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
+                .setSmallIcon(android.R.drawable.ic_media_play) //TODO poner icono de musica
+                        // Add media control buttons that invoke intents in your media service
+//                .addAction(android.R.drawable.ic_media_rew, "Previous", likePendingIntent) //todo poner boton paa wasap
+
+                .setStyle(new android.support.v4.app.NotificationCompat.BigTextStyle()
+                        .bigText(currentChapter.getText())
+                        .setBigContentTitle(currentBook.getTitle()))
+                .setShowWhen(false)
+//                .setDeleteIntent(stopPendingIntent)
+                .setContentTitle(currentChapter.getBookName())
+                .setContentText(currentChapter.getText())
+//                .setSubText(currentChapter.getChapterId() + "/" + currentBook.nChapters())
+//                .setLargeIcon(currentBook.getImageBitmap())
+                .setTicker(currentBook.getTitle() + "\n" + currentBook.fakeAuthor())
+                .build();
+        // mId allows you to update the notification later on.
+        mNotificationManager.notify(2, notification);
     }
 
     private void courtesyMessage(String s) {
         myLog.add(tag, "Courtesy: " + s);
+        setSpeakLanguage("ES");
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             t1.speak(s, TextToSpeech.QUEUE_FLUSH, null, COURTESY);
@@ -292,47 +334,100 @@ public class MainActivity extends AppCompatActivity {
     }
 
     //Play
-    private void getRandomChaptersAndPlay(final int chapters) {
 
-        if (isOnline()) {
+    /**
+     * Elige (on line) un summary book, o una banda
+     *
+     * @param musicMode si es modo musica, elege una banda
+     * @param cb
+     */
+    private void getRandomBookSummary(boolean musicMode, final BookSumCallback cb) {
+
+        ParseQuery<BookSummary> q = ParseQuery.getQuery(BookSummary.class);
+
+        if (musicMode) { // get all bands
+
+            // If already loaded
+            if (allBandsSum != null) {
+                getRandomBand(cb);
+
+            } else {
+                q.whereEqualTo("isMusic", true);
+//                q.whereNotContainedIn("libroId", parseHelper.getHatedBandsIds()); todo
+                q.findInBackground(new FindCallback<BookSummary>() {
+                    @Override
+                    public void done(List<BookSummary> bandsSum, ParseException e) {
+                        if (e == null) {
+                            allBandsSum = bandsSum;
+
+                            getRandomBand(cb);
+
+                        } else {
+                            cb.onError("trayendo los summ de bandas", e);
+                        }
+                    }
+                });
+            }
+
+
+        } else { //not music, but book
 
             // get number of books
-            ParseQuery<ParseObject> q = ParseQuery.getQuery("librosSum");
+            q.whereNotEqualTo("isMusic", true);
+//            q.whereNotContainedIn("libroId", parseHelper.getHatedBooksIds()); todo
             q.orderByDescending("libroId");
-            q.getFirstInBackground(new GetCallback<ParseObject>() {
+
+            q.getFirstInBackground(new GetCallback<BookSummary>() {
                 @Override
-                public void done(ParseObject object, ParseException e) {
+                public void done(BookSummary bookSummary, ParseException e) {
                     if (e == null) {
 
-                        final int nBooks = object.getInt("libroId");
+                        final int nBooks = bookSummary.getInt("libroId");
                         final int iBook = new Random().nextInt(nBooks + 1);
 
                         myLog.add(tag2, "RANDOM: elegido el libro:" + iBook + "/" + nBooks);
-
-                        BookSumCallback callback = new BookSumCallback() {
-                            @Override
-                            public void onReceived(BookSummary bookSummary) {
-                                final int iChapter = new Random().nextInt(bookSummary.nChapters() + 1);
-
-                                BookContability.incrementJumpedInBook(bookSummary);
-
-                                getChapterAndPlay(iBook, iChapter, chapters, false);
-
-                            }
-
-                            @Override
-                            public void onError(String text, ParseException e) {
-
-                            }
-                        };
-
-                        parseHelper.getBookSummary(iBook, callback);
+                        parseHelper.getBookSummary(iBook, cb);
 
                     } else {
                         myLog.add(tag, "EEROR en getting the maximun book" + e.getLocalizedMessage());
                     }
                 }
             });
+
+        }
+    }
+
+    private void getRandomBand(BookSumCallback cb) {
+        Random random = new Random();
+        cb.onReceived(allBandsSum.get(random.nextInt(allBandsSum.size())));
+    }
+
+    private void getRandomChaptersAndPlay(final int chapters) {
+
+        if (isOnline()) {
+
+            BookSumCallback cb = new BookSumCallback() {
+                @Override
+                public void onReceived(BookSummary bookSummary) {
+                    //Get the chapters( or songs):
+
+                    currentBook = bookSummary;
+
+                    final int iChapter = new Random().nextInt(bookSummary.nChapters() + 1);
+
+                    BookContability.incrementJumpedInBook(bookSummary);
+
+                    getChapterAndPlay(bookSummary.getId(), iChapter, chapters, false);
+                }
+
+                @Override
+                public void onError(String text, ParseException e) {
+                    myLog.error(text, e);
+                }
+            };
+
+            getRandomBookSummary(musicMode, cb);
+
 
         } else {
             courtesyMessage("Tengo un problema, no puedo recordar más historias. Si conectas internet, seguro que me refresca la memoria.");
@@ -394,7 +489,7 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void onError(String text, ParseException e) {
-
+                myLog.error(text, e);
             }
         };
 
@@ -435,6 +530,9 @@ public class MainActivity extends AppCompatActivity {
 
         } else {
             myLog.add(tag, "\n" + currentChapter.shortestDescription() + " MANDADO");
+
+            //TODO cambiar sólo si es distinto
+            setSpeakLanguage(currentChapter.getLanguage());
 
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
                 t1.speak(currentChapter.getProcessedText(), nextQueueMode, null, currentChapter.shortDescription());
@@ -497,7 +595,8 @@ public class MainActivity extends AppCompatActivity {
         interrupted = true;
         entireBookMode = false;
         myLog.add(tag, "*********PRESSED NEXT");
-        courtesyMessage("Vaya, no te ha gustado. Veamos otra cosa...");
+
+        if (!musicMode) courtesyMessage("Vaya, no te ha gustado. Veamos otra cosa...");
 
         if (!btnLike.isEnabled()) btnLike.setEnabled(true);
 
@@ -547,6 +646,10 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    private void onClickMusicBook() {
+        musicMode = !musicMode;
+        onClickNext(null);
+    }
 
     /**
      * Checks if we have internet connection     *
@@ -564,17 +667,27 @@ public class MainActivity extends AppCompatActivity {
         return b;
     }
 
+    private void removeLyricNotification() {
+        mNotificationManager.cancel(2);
+    }
+
     class uListener extends UtteranceProgressListener {
+
         @Override
         public void onStart(String utteranceId) {
             myLog.add(tag, utteranceId + ": START SPEAKING");
 //                                        Toast.makeText(MainActivity.this, utteranceId, Toast.LENGTH_SHORT).show();
 
-            showNotification();
+            showMediaNotification();
+            //notificación con la letra
+            if (musicMode && !utteranceId.equals(COURTESY)) {
+                showLyricsNotification();
+                isShowingLyricsNotification = true;
+            }
+
             runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
-
                     btnPlayStop.setText("STOP");
                 }
             });
@@ -585,12 +698,17 @@ public class MainActivity extends AppCompatActivity {
             myLog.add(tag, utteranceId + ": END. forced?" + interrupted);
             // if (utteranceId.equals(msgs)) return;
 
+            //Quitar la notificaciónde lyrics si es que
+            if (isShowingLyricsNotification) {
+                removeLyricNotification();
+            }
+
             if (utteranceId.equals(COURTESY)) {
                 nextQueueMode = TextToSpeech.QUEUE_FLUSH;
             } else {
                 if (interrupted) {
                     myLog.add(tag, "se ha interrumpido, no ponemos otro");
-                    showNotification();
+                    showMediaNotification();
                     interrupted = false;
 
                     //termino de contar la el chapter
@@ -606,9 +724,11 @@ public class MainActivity extends AppCompatActivity {
             myLog.add(tag, "***ERRORen utterance: id = " + utteranceId);
 
         }
+
     }
 
     private class EventsReceiver extends BroadcastReceiver {
+
         @Override
         public void onReceive(Context context, Intent intent) {
             String action;
@@ -624,10 +744,13 @@ public class MainActivity extends AppCompatActivity {
                     case NEXT:
                         onClickNext(null);
                         break;
+                    case MUSICBOOK:
+                        onClickMusicBook();
                     case STOP:
                         t1.stop();
                         finish();
                         break;
+
                 }
             } catch (Exception e) {
             }

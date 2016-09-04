@@ -40,7 +40,10 @@ public class Chapter extends ParseObject {
     }
 
     public String getLanguage() {
-        return "language";
+        String language = getString("language");
+        if (language == null || language == "") language = "ES";
+
+        return language;
     }
 
     public boolean isSong() {
@@ -73,11 +76,12 @@ public class Chapter extends ParseObject {
         String te = getText();
         te = te.replaceAll(" —", ", ");
         te = te.replaceAll("—", "");
+        te = te.replaceAll("-", "");//TODo cambiar por expresion regular que comprueba que viene una palabra
         te = te.replaceAll("–¿", "¿");
         te = te.replaceAll("–¡", "¡");
         te = te.replaceAll("No\\.", "No . ");
         te = te.replaceAll("pie", "píe");
-//        Log.d("mhp", "")
+        te = te.replaceAll("local", "lokal");
         return te;
     }
 

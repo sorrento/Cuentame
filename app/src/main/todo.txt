@@ -1,28 +1,14 @@
-	.- al quitar la notif, que se calle
-	.- quitar la notif al cerrar la app
-	.- al quitar la notif se estropea lo que el bnoton de paisa cambie
-
-
-
-
 
 ---- alto
-cuando se borra los internos en parse?
-uqitar el guion cuando viene palabra
-	- que se guarde en interno
-			- la primera vez que se enciende, cargar un libro completo
-		- cuando se han escuchado 20 fragmentos del mismo, cargarlo entero
-		- buscar primero en local, sino se encuentra, online
-		 	- si no está conectado, mostrar mensaje y poner algo de lo que ya está
-	- que no repita los que no quiero
-
+	cuando se borra los internos en parse?
+	uqitar el guion cuando viene palabra
 	- arreglar el que se desarrolla en diferentes hilos
 	- hacer servicio?
 	- widget
 
 
 ---- medio
-- si quedan menos de 50 en memoria, cargar otro pack
+	- si quedan menos de 50 en memoria, cargar otro pack
 	- sacudida para detener
 	- poner icono
 	- quitar activitidad
@@ -30,7 +16,6 @@ uqitar el guion cuando viene palabra
 	- que los libros que no gustan los pruebe sólo 3 veces
 
 ---- detalles
-	- quitar la hora
 	- btones tienen borde gris
 	- se puede hacer que la notificación esté grande?
 	- poner mas frases gentiles [para lo mismo]
