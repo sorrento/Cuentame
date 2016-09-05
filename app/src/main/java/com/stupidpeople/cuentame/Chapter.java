@@ -82,6 +82,9 @@ public class Chapter extends ParseObject {
         te = te.replaceAll("No\\.", "No . ");
         te = te.replaceAll("pie", "píe");
         te = te.replaceAll("local", "lokal");
+        te = te.replaceAll("<<", "");
+        te = te.replaceAll(">>", "");
+
         return te;
     }
 

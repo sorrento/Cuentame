@@ -255,7 +255,8 @@ public class MainActivity extends AppCompatActivity {
         PendingIntent musicBookPendingIntent = PendingIntent.getBroadcast(this, 1, musicBook, PendingIntent.FLAG_UPDATE_CURRENT);
 
         int iconPlayPause = t1.isSpeaking() ? android.R.drawable.ic_media_pause : android.R.drawable.ic_media_play;
-        int iconMusicBook = musicMode ? R.drawable.ic_music_note_white_24dp : R.drawable.ic_book;
+//        int iconMusicBook = musicMode ? R.drawable.ic_book : R.drawable.ic_music_note_white_24dp;
+        int iconMusicBook = R.drawable.ic_book;
 
         String title = currentChapter.isSong() ? currentChapter.getBookName() : currentBook.fakeTitle();
         String content = currentChapter.isSong() ? currentChapter.getAuthor() : currentBook.fakeAuthor();
@@ -264,7 +265,7 @@ public class MainActivity extends AppCompatActivity {
                 // Show controls on lock screen even when user hides sensitive content.
                 .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
                 .setSmallIcon(android.R.drawable.ic_media_play)
-                        // Add media control buttons that invoke intents in your media service
+                // Add media control buttons that invoke intents in your media service
                 .addAction(android.R.drawable.ic_media_rew, "Previous", likePendingIntent) // #0
                 .addAction(iconPlayPause, "Pause", playPendingIntent)  // #1
                 .addAction(android.R.drawable.ic_media_next, "Next", nextPendingIntent)     // #2
@@ -294,7 +295,7 @@ public class MainActivity extends AppCompatActivity {
                 // Show controls on lock screen even when user hides sensitive content.
                 .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
                 .setSmallIcon(android.R.drawable.ic_media_play) //TODO poner icono de musica
-                        // Add media control buttons that invoke intents in your media service
+                // Add media control buttons that invoke intents in your media service
 //                .addAction(android.R.drawable.ic_media_rew, "Previous", likePendingIntent) //todo poner boton paa wasap
 
                 .setStyle(new android.support.v4.app.NotificationCompat.BigTextStyle()
@@ -415,7 +416,7 @@ public class MainActivity extends AppCompatActivity {
 
                     final int iChapter = new Random().nextInt(bookSummary.nChapters() + 1);
 
-                    BookContability.incrementJumpedInBook(bookSummary);
+//                    BookContability.incrementJumpedInBook(bookSummary); TODO MARCAR libro por visita
 
                     getChapterAndPlay(bookSummary.getId(), iChapter, chapters, false);
                 }
@@ -529,7 +530,7 @@ public class MainActivity extends AppCompatActivity {
             playNext();
 
         } else {
-            myLog.add(tag, "\n" + currentChapter.shortestDescription() + " MANDADO");
+            myLog.add(tag, "----> MANDADO: " + currentChapter.shortestDescription());
 
             //TODO cambiar sólo si es distinto
             setSpeakLanguage(currentChapter.getLanguage());
@@ -596,10 +597,6 @@ public class MainActivity extends AppCompatActivity {
         entireBookMode = false;
         myLog.add(tag, "*********PRESSED NEXT");
 
-        if (!musicMode) courtesyMessage("Vaya, no te ha gustado. Veamos otra cosa...");
-
-        if (!btnLike.isEnabled()) btnLike.setEnabled(true);
-
         //block button 2 secons
         btnNext.setEnabled(false);
         btnNext.postDelayed(new Runnable() {
@@ -609,9 +606,19 @@ public class MainActivity extends AppCompatActivity {
             }
         }, 2000);
 
-
         myLog.add(tag, "..Playnext porque cluckedNext");
-        getRandomChaptersAndPlay(10);
+
+        if (!btnLike.isEnabled()) btnLike.setEnabled(true);
+
+        if (musicMode) {
+            //avanzamos en el buffer y luego saltanos
+            playNext();
+        } else {
+            courtesyMessage("Vaya, no te ha gustado. Veamos otra cosa...");
+            getRandomChaptersAndPlay(10);
+        }
+
+
     }
 
     public void onClickLike(View view) {
@@ -648,7 +655,14 @@ public class MainActivity extends AppCompatActivity {
 
     private void onClickMusicBook() {
         musicMode = !musicMode;
-        onClickNext(null);
+
+//        onClickNext(null);
+        interrupted = true;
+        entireBookMode = false;
+        myLog.add(tag, "*********PRESSED CHANGE MODE TO MUSIC:" + musicMode);
+
+        getRandomChaptersAndPlay(10);
+
     }
 
     /**
@@ -675,7 +689,7 @@ public class MainActivity extends AppCompatActivity {
 
         @Override
         public void onStart(String utteranceId) {
-            myLog.add(tag, utteranceId + ": START SPEAKING");
+            myLog.add(tag, "----> START SPEAKING: " + utteranceId);
 //                                        Toast.makeText(MainActivity.this, utteranceId, Toast.LENGTH_SHORT).show();
 
             showMediaNotification();
@@ -695,7 +709,7 @@ public class MainActivity extends AppCompatActivity {
 
         @Override
         public void onDone(String utteranceId) {
-            myLog.add(tag, utteranceId + ": END. forced?" + interrupted);
+            myLog.add(tag, "----> END SPEAKING: " + utteranceId + " forced?" + interrupted);
             // if (utteranceId.equals(msgs)) return;
 
             //Quitar la notificaciónde lyrics si es que
