@@ -2,6 +2,8 @@ package com.stupidpeople.cuentame;
 
 
 import android.os.Environment;
+import android.speech.tts.TextToSpeech;
+import android.speech.tts.Voice;
 import android.util.Log;
 
 import java.io.BufferedWriter;
@@ -11,6 +13,8 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.List;
+import java.util.Set;
 
 /**
  * Created by Milenko on 16/07/2015.
@@ -95,6 +99,27 @@ public class myLog {
 
     public static void error(String text, Exception e) {
         add("ERROR", text + " | " + e.getLocalizedMessage());
+    }
+
+    public static void printTTSinfo(TextToSpeech t1) {
+        int i = 0;
+        List<TextToSpeech.EngineInfo> engines = t1.getEngines();
+
+        for (TextToSpeech.EngineInfo engineinfo : engines) {
+            i++;
+            add("TTS", "Engine:" + i + engineinfo.name);
+        }
+
+        Set<Voice> ss = null;
+        i = 0;
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {
+            i++;
+            ss = t1.getVoices();
+            for (Voice voice : ss) {
+                add("TTS", voice.toString());
+            }
+            add("TTS", "Speaking with:" + t1.getVoice().getName());
+        }
     }
 }
 

@@ -16,6 +16,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.speech.tts.TextToSpeech;
 import android.speech.tts.UtteranceProgressListener;
+import android.speech.tts.Voice;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.app.NotificationCompat;
 import android.view.View;
@@ -32,6 +33,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Random;
+import java.util.Set;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -133,11 +135,15 @@ public class MainActivity extends AppCompatActivity {
 
 //        enginePackageName	String: The package name for the synthesis engine (e.g. "com.svox.pico")
 
+
         t1 = new TextToSpeech(getApplicationContext(), new TextToSpeech.OnInitListener() {
             @Override
             public void onInit(int status) {
 
                 if (status != TextToSpeech.ERROR) {
+                    //TODO remove
+                    myLog.printTTSinfo(t1);
+
                     String engine = getBestEngine();
 
                     t1 = new TextToSpeech(getApplicationContext(), new TextToSpeech.OnInitListener() {
@@ -182,21 +188,29 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void setSpeakLanguage(String lan) {
-//        fixed Locale spanish = new Locale("es", "ES"); c.locale = spanish; //this works THA
+
         switch (lan) {
             case "ES":
-//                Configuration c = new Configuration(getResources().getConfiguration());
                 Locale spanish = new Locale("es", "ES");
-//                c.locale = spanish; //this works THA
                 t1.setLanguage(spanish);
                 break;
+
             case "EN":
                 t1.setLanguage(Locale.ENGLISH);
-                //t1.setLanguage(Locale.UK);
+
+                //Select voice
+                if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {
+                    Set<Voice> voices = t1.getVoices();
+                    for (Voice voice : voices) {
+                        if (voice.getName().equals("en-US-SMTl01")) {
+                            t1.setVoice(voice);
+                            break;
+                        }
+                    }
+                }
                 break;
         }
     }
-
 
     @Override
     protected void onResume() {
@@ -536,6 +550,7 @@ public class MainActivity extends AppCompatActivity {
             setSpeakLanguage(currentChapter.getLanguage());
 
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                myLog.add("TTS", "next chapter speaking with voice:" + t1.getVoice().toString());
                 t1.speak(currentChapter.getProcessedText(), nextQueueMode, null, currentChapter.shortDescription());
             } else {
                 HashMap<String, String> map = new HashMap<>();
@@ -565,6 +580,7 @@ public class MainActivity extends AppCompatActivity {
             engine = samsungEngine;
         } else {
             Toast.makeText(MainActivity.this, "Instale un sintenizador bueno, la calidad no será aceptable. Por ejemplo, tts samsung", Toast.LENGTH_SHORT).show();
+            courtesyMessage("Instale un sintenizador bueno, la calidad no será aceptable. Por ejemplo, tts samsung");
             engine = t1.getDefaultEngine();
         }
         return engine;
@@ -748,6 +764,7 @@ public class MainActivity extends AppCompatActivity {
             String action;
             try {
                 action = intent.getAction();
+                myLog.add(tag, "action received: " + action);
                 switch (action) {
                     case LIKE:
                         onClickLike(null);
@@ -760,13 +777,14 @@ public class MainActivity extends AppCompatActivity {
                         break;
                     case MUSICBOOK:
                         onClickMusicBook();
+                        break;
                     case STOP:
                         t1.stop();
                         finish();
                         break;
-
                 }
             } catch (Exception e) {
+                myLog.error("on receive broadcast", e);
             }
         }
 
