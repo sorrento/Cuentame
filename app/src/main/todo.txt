@@ -1,18 +1,16 @@
 
+no baja cortina, ni quita el lock
+
 ---- alto
 	cuando se borra los internos en parse?
-	uqitar el guion cuando viene palabra
 	- arreglar el que se desarrolla en diferentes hilos
 	- hacer servicio?
 	- widget
 
 
 ---- medio
-	- si quedan menos de 50 en memoria, cargar otro pack
-	- sacudida para detener
 	- poner icono
 	- quitar activitidad
-	- sin internet, que se guarde
 	- que los libros que no gustan los pruebe sólo 3 veces
 
 ---- detalles

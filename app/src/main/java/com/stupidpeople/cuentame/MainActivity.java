@@ -6,6 +6,7 @@ import android.app.PendingIntent;
 import android.content.ActivityNotFoundException;
 import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
@@ -25,8 +26,6 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.app.NotificationCompat;
 import android.view.LayoutInflater;
 import android.view.View;
-import android.view.Window;
-import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -63,6 +62,7 @@ public class MainActivity extends AppCompatActivity {
     private static final String MUSICBOOK = "musicBook";
     private static final String SHARETEXT = "shareText";
     private static final String SHAREAUDIO = "shareAudio";
+    private static final int OFFSET = 2;
 
     final private String samsungEngine = "com.samsung.SMT";
     TextToSpeech t1;
@@ -101,6 +101,10 @@ public class MainActivity extends AppCompatActivity {
     private String destFileName;
     private TextToSpeech t2;
     private String uttsavingFile = "savingFile";
+    private String[] dividedLyrics;
+    private int iVersoIni;
+    private int iVersoEnd;
+    private String versoIni;
 
 
     //todo se jode al girar la pantalla
@@ -207,57 +211,68 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-    public void shareLyricWhatsapp(final String text, boolean audio) {
+    public void shareLyricWhatsapp(final boolean audio) {
+        StringCallback cb = new StringCallback() {
+            @Override
+            public void onDone(String[] versos) {
 
-        if (audio) {
+                if (audio) {
 
-            interrupted = true;
-            t1.stop();
+                    interrupted = true;
+                    t1.stop();
 
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                Toast.makeText(MainActivity.this, "Preparando la voz para enviar...", Toast.LENGTH_SHORT).show();
+                    String text = Chapter.processForReading(Chapter.joinVersos(versos, ". "));
 
-                File fileTTS = new File(destFileName);
-                t1.synthesizeToFile(text, null, fileTTS, uttsavingFile);
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                        Toast.makeText(MainActivity.this, "Preparando la voz para enviar...", Toast.LENGTH_SHORT).show();
 
-            } else {
-                HashMap<String, String> map = new HashMap<>();
-                map.put(TextToSpeech.Engine.KEY_PARAM_UTTERANCE_ID, uttsavingFile);
-                t1.synthesizeToFile(text, map, destFileName);
+                        File fileTTS = new File(destFileName);
+                        t1.synthesizeToFile(text, null, fileTTS, uttsavingFile);
+
+                    } else {
+                        HashMap<String, String> map = new HashMap<>();
+                        map.put(TextToSpeech.Engine.KEY_PARAM_UTTERANCE_ID, uttsavingFile);
+                        t1.synthesizeToFile(text, map, destFileName);
+                    }
+
+
+                } else { //TEXTO
+                    final String text = "_" + Chapter.joinVersos(versos, "_\n_") + "_____\n"
+                            + currentBook.getAuthor() + "\nSent by *Metal Poetry*";
+
+                    Intent whatsappIntent = new Intent(Intent.ACTION_SEND);
+                    whatsappIntent.setPackage("com.whatsapp");
+                    whatsappIntent.setType("text/plain");
+                    whatsappIntent.putExtra(Intent.EXTRA_TEXT, text);
+
+                    sendWhatsappIntent(whatsappIntent);
+
+                }
             }
+        };
 
-
-        } else { //TEXTO
-
-            Intent whatsappIntent = new Intent(Intent.ACTION_SEND);
-            whatsappIntent.setPackage("com.whatsapp");
-
-            whatsappIntent.setType("text/plain");
-            whatsappIntent.putExtra(Intent.EXTRA_TEXT, text + "\n _Sent by Metal Poetry_");
-
-            sendWhatsappIntent(whatsappIntent);
-
-        }
+        chooseVersos(cb);
 
     }
 
     private void sendWhatsappIntent(Intent whatsappIntent) {
         myLog.add(tagW, "sending wasap intent");
 
+
+//        //Quitamos el lock
+//        Window w = this.getWindow();
+//        w.addFlags(WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED);
+////        w.addFlags(WindowManager.LayoutParams.FLAG_DISMISS_KEYGUARD);
+//
         // cerramos las notificaciones
         Intent it = new Intent(Intent.ACTION_CLOSE_SYSTEM_DIALOGS);
         MainActivity.this.sendBroadcast(it);
 
-
         // ponemos la actividad en el frente
         Intent intentHome = new Intent(getApplicationContext(), MainActivity.class);
         intentHome.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-        intentHome.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+//        intentHome.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         startActivity(intentHome);
-        //Quitamos el lock
-        Window w = this.getWindow();
-        w.addFlags(WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED);
-//        w.addFlags(WindowManager.LayoutParams.FLAG_DISMISS_KEYGUARD);
 
         //enviar a Whatsapp
         try {
@@ -268,6 +283,8 @@ public class MainActivity extends AppCompatActivity {
         } catch (Exception e) {
             myLog.add(tagW, "error lanzando la actividad wasap: " + e.getLocalizedMessage());
         }
+
+
     }
 
     private void setSpeakLanguage(String lan, TextToSpeech t) {
@@ -305,9 +322,9 @@ public class MainActivity extends AppCompatActivity {
         myLog.add(tag2, "*********Resumuinf");
 
 
-        if (!t1.isSpeaking() && currentChapter != null) {
-            playCurrentChapter();
-        }
+//        if (!t1.isSpeaking() && currentChapter != null) {
+//            playCurrentChapter();
+//        }
     }
 
     @Override
@@ -368,7 +385,7 @@ public class MainActivity extends AppCompatActivity {
                 // Show controls on lock screen even when user hides sensitive content.
                 .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
                 .setSmallIcon(android.R.drawable.ic_media_play)
-                // Add media control buttons that invoke intents in your media service
+                        // Add media control buttons that invoke intents in your media service
                 .addAction(android.R.drawable.ic_media_rew, "Previous", likePendingIntent) // #0
                 .addAction(iconPlayPause, "Pause", playPendingIntent)  // #1
                 .addAction(android.R.drawable.ic_media_next, "Next", nextPendingIntent)     // #2
@@ -404,7 +421,7 @@ public class MainActivity extends AppCompatActivity {
                 // Show controls on lock screen even when user hides sensitive content.
                 .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
                 .setSmallIcon(android.R.drawable.ic_media_play) //TODO poner icono de musica
-                // Add media control buttons that invoke intents in your media service
+                        // Add media control buttons that invoke intents in your media service
 //                .addAction(android.R.drawable.ic_media_rew, "Previous", likePendingIntent) //todo poner boton paa wasap
 
                 .setStyle(new BigTextStyle()
@@ -417,7 +434,7 @@ public class MainActivity extends AppCompatActivity {
 //                .setSubText(currentChapter.getChapterId() + "/" + currentBook.nChapters())
 //                .setLargeIcon(currentBook.getImageBitmap())
                 .setTicker(currentBook.getTitle() + "\n" + currentBook.fakeAuthor())
-                // actions
+                        // actions
                 .addAction(R.drawable.ic_book, "TEXT", pendingIntentText)
                 .addAction(R.drawable.ic_book, "AUDIO", pendingIntentAudio)
                 .build();
@@ -555,7 +572,6 @@ public class MainActivity extends AppCompatActivity {
      * @param bufferSize
      */
     private void getChapterAndPlay(final int iBook, final int iChapter, final int bufferSize, final boolean local) {
-        final String fi = "nCapitulo";
 
         BookSumCallback cb = new BookSumCallback() {
             @Override
@@ -738,27 +754,6 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void onClickLike(View view) {
-        String[] dividedLyrics = currentChapter.getDividedLyrics();
-
-        // TEST on wheel
-        View outerView = LayoutInflater.from(this).inflate(R.layout.wheel_view, null);
-        WheelView wv = (WheelView) outerView.findViewById(R.id.wheel_view_wv);
-        wv.setOffset(2);
-//        wv.setItems(Arrays.asList(PLANETS));
-        wv.setItems(Arrays.asList(dividedLyrics));
-        wv.setSelection(3);
-        wv.setOnWheelViewListener(new WheelView.OnWheelViewListener() {
-            @Override
-            public void onSelected(int selectedIndex, String item) {
-                myLog.add(tag, "[Dialog]selectedIndex: " + selectedIndex + ", item: " + item);
-            }
-        });
-
-        new AlertDialog.Builder(this)
-                .setTitle("Verso inicial")
-                .setView(outerView)
-                .setPositiveButton("OK", null)
-                .show();
 
 //        myLog.add(tag, "*********PRESSED LIKE");
 //
@@ -791,6 +786,68 @@ public class MainActivity extends AppCompatActivity {
 //        }
     }
 
+    private void chooseVersos(final StringCallback cb) {
+        dividedLyrics = currentChapter.getDividedLyrics();
+
+        // TEST on wheel
+        View outerView = LayoutInflater.from(this).inflate(R.layout.wheel_view, null);
+        WheelView wv = (WheelView) outerView.findViewById(R.id.wheel_view_wv);
+        wv.setOffset(2);
+        wv.setItems(Arrays.asList(dividedLyrics));
+        wv.setSelection(3);
+        wv.setOnWheelViewListener(new WheelView.OnWheelViewListener() {
+            @Override
+            public void onSelected(int selectedIndex, String item) {
+                myLog.add(tag, "[Dialog]selectedIndex: " + selectedIndex + ", item: " + item);
+                iVersoIni = selectedIndex;
+                versoIni = item;
+            }
+        });
+
+        new AlertDialog.Builder(this)
+                .setTitle("Verso inicial")
+                .setView(outerView)
+                .setPositiveButton("OK", null)
+                .setOnDismissListener(new DialogInterface.OnDismissListener() {
+                    @Override
+                    public void onDismiss(DialogInterface dialog) {
+                        choseLastVerso(cb);
+                    }
+                })
+                .show();
+    }
+
+    private void choseLastVerso(final StringCallback cb) {
+        String[] newArray = Arrays.copyOfRange(dividedLyrics, iVersoIni, dividedLyrics.length);
+
+        // TEST on wheel
+        View outerView = LayoutInflater.from(this).inflate(R.layout.wheel_view, null);
+        WheelView wv = (WheelView) outerView.findViewById(R.id.wheel_view_wv);
+        wv.setOffset(OFFSET);
+        wv.setItems(Arrays.asList(newArray));
+        wv.setSelection(3);
+        wv.setOnWheelViewListener(new WheelView.OnWheelViewListener() {
+            @Override
+            public void onSelected(int selectedIndex, String item) {
+                myLog.add(tag, "[Dialog]selectedIndex: " + selectedIndex + ", item: " + item);
+                iVersoEnd = selectedIndex + iVersoIni;
+            }
+        });
+
+        new AlertDialog.Builder(this)
+                .setTitle(versoIni + "...")
+                .setView(outerView)
+                .setPositiveButton("OK", null).setOnDismissListener(new DialogInterface.OnDismissListener() {
+            @Override
+            public void onDismiss(DialogInterface dialog) {
+                String[] versos = currentChapter.getVersos(iVersoIni - OFFSET, iVersoEnd - OFFSET + 1);
+                cb.onDone(versos);
+
+            }
+        })
+                .show();
+    }
+
     private void onClickMusicBook() {
         musicMode = !musicMode;
 
@@ -821,6 +878,10 @@ public class MainActivity extends AppCompatActivity {
 
     private void removeLyricNotification() {
         mNotificationManager.cancel(2);
+    }
+
+    private interface StringCallback {
+        void onDone(String[] versos);
     }
 
     class uListener extends UtteranceProgressListener {
@@ -925,10 +986,10 @@ public class MainActivity extends AppCompatActivity {
                         break;
                     case SHARETEXT:
                         //TODO select the text to share
-                        shareLyricWhatsapp(myUtil.shortenText(currentChapter.getText(), 100), false);
+                        shareLyricWhatsapp(false);
                         break;
                     case SHAREAUDIO:
-                        shareLyricWhatsapp(myUtil.shortenText(currentChapter.getText(), 100), true);
+                        shareLyricWhatsapp(true);
                         break;
                 }
             } catch (Exception e) {
