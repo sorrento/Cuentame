@@ -3,6 +3,7 @@ package com.stupidpeople.cuentame;
 import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
+import android.content.ActivityNotFoundException;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -12,14 +13,20 @@ import android.hardware.Sensor;
 import android.hardware.SensorManager;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Environment;
 import android.speech.tts.TextToSpeech;
 import android.speech.tts.UtteranceProgressListener;
 import android.speech.tts.Voice;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.app.NotificationCompat;
+import android.view.LayoutInflater;
 import android.view.View;
+import android.view.Window;
+import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -29,13 +36,18 @@ import com.parse.GetCallback;
 import com.parse.ParseException;
 import com.parse.ParseQuery;
 
+import java.io.File;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Random;
 import java.util.Set;
 
+import static android.support.v4.app.NotificationCompat.BigTextStyle;
+
 public class MainActivity extends AppCompatActivity {
+    private static final String[] PLANETS = new String[]{"Mercury", "Venus", "Earth", "Mars", "Jupiter", "Uranus", "Neptune", "Pluto"};
 
     private static final String PREFS_MODE = "mode";
     private static final String PREFS_MODE_MUSIC = "music";
@@ -49,6 +61,8 @@ public class MainActivity extends AppCompatActivity {
     private static final String NEXT = "next";
     private static final String STOP = "stop";
     private static final String MUSICBOOK = "musicBook";
+    private static final String SHARETEXT = "shareText";
+    private static final String SHAREAUDIO = "shareAudio";
 
     final private String samsungEngine = "com.samsung.SMT";
     TextToSpeech t1;
@@ -83,11 +97,13 @@ public class MainActivity extends AppCompatActivity {
 
     private List<BookSummary> allBandsSum = null;
     private boolean isShowingLyricsNotification = false;
+    private String tagW = "WAS";
+    private String destFileName;
+    private TextToSpeech t2;
+    private String uttsavingFile = "savingFile";
 
-    //TODO
-    // leer el idiooma y  poner el reproductor correcto
-    // poner si chapter es cancion o no
-    //
+
+    //todo se jode al girar la pantalla
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -95,6 +111,9 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         myLog.initialize();
+
+        destFileName = (Environment.getExternalStorageDirectory()
+                .getAbsolutePath() + "/Download") + "/" + "tts_file.wav";//TODO remove audio file
 
         // Restore preferences
         settings = getPreferences(MODE_PRIVATE);
@@ -149,7 +168,6 @@ public class MainActivity extends AppCompatActivity {
                     t1 = new TextToSpeech(getApplicationContext(), new TextToSpeech.OnInitListener() {
                         @Override
                         public void onInit(int status) {
-//                            myLog.add(tag, "Status de inicialización:_" + status);
                             if (status != TextToSpeech.ERROR) {
                                 t1.setOnUtteranceProgressListener(new uListener());
 
@@ -180,6 +198,8 @@ public class MainActivity extends AppCompatActivity {
         filter.addAction(PLAYPAUSE);
         filter.addAction(STOP);
         filter.addAction(MUSICBOOK);
+        filter.addAction(SHARETEXT);
+        filter.addAction(SHAREAUDIO);
         this.registerReceiver(eventsReceiver, filter);
 
         //TODO ver otros sintentizadores buenos
@@ -187,23 +207,90 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-    private void setSpeakLanguage(String lan) {
+    public void shareLyricWhatsapp(final String text, boolean audio) {
+
+        if (audio) {
+
+            interrupted = true;
+            t1.stop();
+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                Toast.makeText(MainActivity.this, "Preparando la voz para enviar...", Toast.LENGTH_SHORT).show();
+
+                File fileTTS = new File(destFileName);
+                t1.synthesizeToFile(text, null, fileTTS, uttsavingFile);
+
+            } else {
+                HashMap<String, String> map = new HashMap<>();
+                map.put(TextToSpeech.Engine.KEY_PARAM_UTTERANCE_ID, uttsavingFile);
+                t1.synthesizeToFile(text, map, destFileName);
+            }
+
+
+        } else { //TEXTO
+
+            Intent whatsappIntent = new Intent(Intent.ACTION_SEND);
+            whatsappIntent.setPackage("com.whatsapp");
+
+            whatsappIntent.setType("text/plain");
+            whatsappIntent.putExtra(Intent.EXTRA_TEXT, text + "\n _Sent by Metal Poetry_");
+
+            sendWhatsappIntent(whatsappIntent);
+
+        }
+
+    }
+
+    private void sendWhatsappIntent(Intent whatsappIntent) {
+        myLog.add(tagW, "sending wasap intent");
+
+        // cerramos las notificaciones
+        Intent it = new Intent(Intent.ACTION_CLOSE_SYSTEM_DIALOGS);
+        MainActivity.this.sendBroadcast(it);
+
+
+        // ponemos la actividad en el frente
+        Intent intentHome = new Intent(getApplicationContext(), MainActivity.class);
+        intentHome.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+        intentHome.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        startActivity(intentHome);
+        //Quitamos el lock
+        Window w = this.getWindow();
+        w.addFlags(WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED);
+//        w.addFlags(WindowManager.LayoutParams.FLAG_DISMISS_KEYGUARD);
+
+        //enviar a Whatsapp
+        try {
+            this.startActivity(whatsappIntent);
+        } catch (ActivityNotFoundException ex) {
+            //todo dibujos para botones de notif
+            Toast.makeText(this, "Whatsapp have not been installed.", Toast.LENGTH_SHORT).show();
+        } catch (Exception e) {
+            myLog.add(tagW, "error lanzando la actividad wasap: " + e.getLocalizedMessage());
+        }
+    }
+
+    private void setSpeakLanguage(String lan, TextToSpeech t) {
+        myLog.add(tag, "Setting Language:" + lan);
+        //todo elegir el motor y las voces una sola vez, al inicio
 
         switch (lan) {
             case "ES":
                 Locale spanish = new Locale("es", "ES");
-                t1.setLanguage(spanish);
+                t.setLanguage(spanish);
                 break;
 
             case "EN":
-                t1.setLanguage(Locale.ENGLISH);
+                t.setLanguage(Locale.US);
 
                 //Select voice
                 if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {
-                    Set<Voice> voices = t1.getVoices();
+                    Set<Voice> voices = t.getVoices();
                     for (Voice voice : voices) {
-                        if (voice.getName().equals("en-US-SMTl01")) {
-                            t1.setVoice(voice);
+                        // if (voice.getName().equals("en-US-SMTl01")) {
+                        if (voice.getQuality() == 400 && voice.getLocale() == Locale.US) {
+                            myLog.add(tag, "voice set to: " + voice.toString());
+                            t.setVoice(voice);
                             break;
                         }
                     }
@@ -230,6 +317,8 @@ public class MainActivity extends AppCompatActivity {
         settings.edit().putBoolean(PREFS_MODE, entireBookMode).commit();
         settings.edit().putBoolean(PREFS_MODE_MUSIC, musicMode).commit();
 
+        removeLyricNotification();
+        t1.shutdown();
         // Add the following line to unregister the Sensor Manager onPause
         mSensorManager.unregisterListener(mShakeDetector);
     }
@@ -305,6 +394,12 @@ public class MainActivity extends AppCompatActivity {
 
     private void showLyricsNotification() {
 
+        Intent shareText = new Intent(SHARETEXT);
+        PendingIntent pendingIntentText = PendingIntent.getBroadcast(this, 1, shareText, PendingIntent.FLAG_UPDATE_CURRENT);
+
+        Intent shareAudio = new Intent(SHAREAUDIO);
+        PendingIntent pendingIntentAudio = PendingIntent.getBroadcast(this, 1, shareAudio, PendingIntent.FLAG_UPDATE_CURRENT);
+
         Notification notification = new NotificationCompat.Builder(this)
                 // Show controls on lock screen even when user hides sensitive content.
                 .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
@@ -312,7 +407,7 @@ public class MainActivity extends AppCompatActivity {
                 // Add media control buttons that invoke intents in your media service
 //                .addAction(android.R.drawable.ic_media_rew, "Previous", likePendingIntent) //todo poner boton paa wasap
 
-                .setStyle(new android.support.v4.app.NotificationCompat.BigTextStyle()
+                .setStyle(new BigTextStyle()
                         .bigText(currentChapter.getText())
                         .setBigContentTitle(currentBook.getTitle()))
                 .setShowWhen(false)
@@ -322,6 +417,9 @@ public class MainActivity extends AppCompatActivity {
 //                .setSubText(currentChapter.getChapterId() + "/" + currentBook.nChapters())
 //                .setLargeIcon(currentBook.getImageBitmap())
                 .setTicker(currentBook.getTitle() + "\n" + currentBook.fakeAuthor())
+                // actions
+                .addAction(R.drawable.ic_book, "TEXT", pendingIntentText)
+                .addAction(R.drawable.ic_book, "AUDIO", pendingIntentAudio)
                 .build();
         // mId allows you to update the notification later on.
         mNotificationManager.notify(2, notification);
@@ -329,7 +427,7 @@ public class MainActivity extends AppCompatActivity {
 
     private void courtesyMessage(String s) {
         myLog.add(tag, "Courtesy: " + s);
-        setSpeakLanguage("ES");
+        setSpeakLanguage("ES", t1);
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             t1.speak(s, TextToSpeech.QUEUE_FLUSH, null, COURTESY);
@@ -547,11 +645,12 @@ public class MainActivity extends AppCompatActivity {
             myLog.add(tag, "----> MANDADO: " + currentChapter.shortestDescription());
 
             //TODO cambiar sólo si es distinto
-            setSpeakLanguage(currentChapter.getLanguage());
+            setSpeakLanguage(currentChapter.getLanguage(), t1);
 
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
                 myLog.add("TTS", "next chapter speaking with voice:" + t1.getVoice().toString());
                 t1.speak(currentChapter.getProcessedText(), nextQueueMode, null, currentChapter.shortDescription());
+
             } else {
                 HashMap<String, String> map = new HashMap<>();
                 map.put(TextToSpeech.Engine.KEY_PARAM_UTTERANCE_ID, currentChapter.shortDescription());
@@ -566,6 +665,7 @@ public class MainActivity extends AppCompatActivity {
     private String getBestEngine() {
         String engine;
         boolean isgood = false;
+
         List<TextToSpeech.EngineInfo> engines = t1.getEngines();
 
         for (TextToSpeech.EngineInfo engineinfo : engines) {
@@ -580,7 +680,7 @@ public class MainActivity extends AppCompatActivity {
             engine = samsungEngine;
         } else {
             Toast.makeText(MainActivity.this, "Instale un sintenizador bueno, la calidad no será aceptable. Por ejemplo, tts samsung", Toast.LENGTH_SHORT).show();
-            courtesyMessage("Instale un sintenizador bueno, la calidad no será aceptable. Por ejemplo, tts samsung");
+            courtesyMessage("Instale un sintenizador bueno, la calidad no será aceptable. Por ejemplo, el sintenizador de Samsung");
             engine = t1.getDefaultEngine();
         }
         return engine;
@@ -638,35 +738,57 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void onClickLike(View view) {
-        myLog.add(tag, "*********PRESSED LIKE");
+        String[] dividedLyrics = currentChapter.getDividedLyrics();
 
-        btnLike.setEnabled(false);
+        // TEST on wheel
+        View outerView = LayoutInflater.from(this).inflate(R.layout.wheel_view, null);
+        WheelView wv = (WheelView) outerView.findViewById(R.id.wheel_view_wv);
+        wv.setOffset(2);
+//        wv.setItems(Arrays.asList(PLANETS));
+        wv.setItems(Arrays.asList(dividedLyrics));
+        wv.setSelection(3);
+        wv.setOnWheelViewListener(new WheelView.OnWheelViewListener() {
+            @Override
+            public void onSelected(int selectedIndex, String item) {
+                myLog.add(tag, "[Dialog]selectedIndex: " + selectedIndex + ", item: " + item);
+            }
+        });
 
+        new AlertDialog.Builder(this)
+                .setTitle("Verso inicial")
+                .setView(outerView)
+                .setPositiveButton("OK", null)
+                .show();
 
-        if (isOnline()) {
-            final int bookId = currentChapter.getBookId();
-            courtesyMessage("Bueno, ya que te gusta el relato, veamo si recuerdo cómo empezaba...");
-            interrupted = true;
-            getChapterAndPlay(bookId, 1, 10, false);
-
-
-            parseHelper.importWholeBook(bookId, new TaskDoneCallback2() {
-                @Override
-                public void onDone() {
-                    myLog.add(tag, "DONE. book " + bookId + " loaded in internal storage");
-                    entireBookMode = true;
-                }
-
-                @Override
-                public void onError(String text, ParseException e) {
-                    myLog.error("fallo en importar los libros |" + text, e);
-                }
-            });
-
-        } else {
-            courtesyMessage("Te lo contaría desde el principio, pero necesitamos conección a internet para ayudarme a recordar. Seguiré por donde iba...");
-            playCurrentChapter();
-        }
+//        myLog.add(tag, "*********PRESSED LIKE");
+//
+//        btnLike.setEnabled(false);
+//
+//
+//        if (isOnline()) {
+//            final int bookId = currentChapter.getBookId();
+//            courtesyMessage("Bueno, ya que te gusta el relato, veamo si recuerdo cómo empezaba...");
+//            interrupted = true;
+//            getChapterAndPlay(bookId, 1, 10, false);
+//
+//
+//            parseHelper.importWholeBook(bookId, new TaskDoneCallback2() {
+//                @Override
+//                public void onDone() {
+//                    myLog.add(tag, "DONE. book " + bookId + " loaded in internal storage");
+//                    entireBookMode = true;
+//                }
+//
+//                @Override
+//                public void onError(String text, ParseException e) {
+//                    myLog.error("fallo en importar los libros |" + text, e);
+//                }
+//            });
+//
+//        } else {
+//            courtesyMessage("Te lo contaría desde el principio, pero necesitamos conección a internet para ayudarme a recordar. Seguiré por donde iba...");
+//            playCurrentChapter();
+//        }
     }
 
     private void onClickMusicBook() {
@@ -708,6 +830,8 @@ public class MainActivity extends AppCompatActivity {
             myLog.add(tag, "----> START SPEAKING: " + utteranceId);
 //                                        Toast.makeText(MainActivity.this, utteranceId, Toast.LENGTH_SHORT).show();
 
+//            if (utteranceId.equals(uttsavingFile)) myLog.add(tagW, " onstart uttery");
+
             showMediaNotification();
             //notificación con la letra
             if (musicMode && !utteranceId.equals(COURTESY)) {
@@ -733,8 +857,25 @@ public class MainActivity extends AppCompatActivity {
                 removeLyricNotification();
             }
 
+
             if (utteranceId.equals(COURTESY)) {
                 nextQueueMode = TextToSpeech.QUEUE_FLUSH;
+
+            } else if (utteranceId.equals(uttsavingFile)) {
+                myLog.add(tagW, "terminado de guardar el archivo, vamos a mandar el intent");
+                // enviar el file to whatsapp
+
+                // Todo convert to mp3 before sending
+                Intent whatsappIntent = new Intent(Intent.ACTION_SEND);
+                whatsappIntent.setPackage("com.whatsapp");
+
+                whatsappIntent.setType("audio/*");
+                Uri uri = Uri.parse(destFileName);
+
+                whatsappIntent.putExtra(Intent.EXTRA_STREAM, uri);
+
+                sendWhatsappIntent(whatsappIntent);
+
             } else {
                 if (interrupted) {
                     myLog.add(tag, "se ha interrumpido, no ponemos otro");
@@ -781,6 +922,13 @@ public class MainActivity extends AppCompatActivity {
                     case STOP:
                         t1.stop();
                         finish();
+                        break;
+                    case SHARETEXT:
+                        //TODO select the text to share
+                        shareLyricWhatsapp(myUtil.shortenText(currentChapter.getText(), 100), false);
+                        break;
+                    case SHAREAUDIO:
+                        shareLyricWhatsapp(myUtil.shortenText(currentChapter.getText(), 100), true);
                         break;
                 }
             } catch (Exception e) {

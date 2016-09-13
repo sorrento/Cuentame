@@ -85,6 +85,9 @@ public class Chapter extends ParseObject {
         te = te.replaceAll("normal", " noormal");
         te = te.replaceAll("<<", "");
         te = te.replaceAll(">>", "");
+        te = te.replaceAll("\\.\\.\\.\\.", "...");
+        te = te.replaceAll("\\.\\.", ".");
+        te = te.replaceAll(":\\.", ".");
 
         return te;
     }
@@ -93,13 +96,27 @@ public class Chapter extends ParseObject {
         final String tt = getText();
         final int i = 40;
 
-        String substring = tt.length() < i ? tt : tt.substring(0, i);
-
-        return shortestDescription() + " - [" + substring.replaceAll("\n", " ") + "]";
+        return shortestDescription() + " - [" + myUtil.shortenText(tt, i).replaceAll("\n", " ") + "]";
     }
 
     public String shortestDescription() {
         return getBookName() + "(" + getChapterId() + "|" + getBookId() + ")";
     }
 
+    /**
+     * pensado para mostrar en la ruleta selectora
+     *
+     * @return
+     */
+    public String[] getDividedLyrics() {
+        String texto = getText();
+        myLog.add("div", "testo=" + texto);
+
+        //TODO ojo procesar el que se mande como audio
+
+        String[] popo = texto.split("\\.");
+        myLog.add("div", " \n parts= " + popo.length + " : " + popo.toString());
+
+        return popo;
+    }
 }
