@@ -1,28 +1,14 @@
-
-no baja cortina, ni quita el lock
-
 ---- alto
 	cuando se borra los internos en parse?
 	- arreglar el que se desarrolla en diferentes hilos
 	- hacer servicio?
 	- widget
-
-
 ---- medio
-	- poner icono
 	- quitar activitidad
-	- que los libros que no gustan los pruebe sólo 3 veces
 
 ---- detalles
-	- btones tienen borde gris
-	- se puede hacer que la notificación esté grande?
-	- poner mas frases gentiles [para lo mismo]
 	- al quitar auricular que se pare
 		http://stackoverflow.com/questions/13610258/how-to-detect-when-a-user-plugs-headset-on-android-device-opposite-of-action-a
----------------------------------------------------------
-
-- como que se desconecta lo que está sonando de la notificación o de la app
-
 --------------------------------------------
 	- al que funcione al salir de la actividad
 	- hacer widget en portada

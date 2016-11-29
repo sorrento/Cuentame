@@ -18,13 +18,14 @@ public class ShakeDetector implements SensorEventListener {
      * from the Google Play Store and run it to see how
      *  many G's it takes to register a shake
      */
-    private static final float SHAKE_THRESHOLD_GRAVITY = 2.3F;
+    private static final float SHAKE_THRESHOLD_GRAVITY = 1.8F;//2.5F;
     private static final int SHAKE_SLOP_TIME_MS = 500;
     private static final int SHAKE_COUNT_RESET_TIME_MS = 3000;
 
     private OnShakeListener mListener;
     private long mShakeTimestamp;
     private int mShakeCount;
+    private String tag = "shk";
 
     public void setOnShakeListener(OnShakeListener listener) {
         this.mListener = listener;
@@ -49,6 +50,9 @@ public class ShakeDetector implements SensorEventListener {
 
             // gForce will be close to 1 when there is no movement.
             float gForce = (float) Math.sqrt(gX * gX + gY * gY + gZ * gZ);
+            // consider only side movement (avoid activation in pockets)
+//            if (gForce > 1.5) myLog.add("X=" + gX + " Y=" + gY + " Z=" + gZ, tag);
+            gForce = gX;
 
             if (gForce > SHAKE_THRESHOLD_GRAVITY) {
                 final long now = System.currentTimeMillis();

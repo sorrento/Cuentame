@@ -21,35 +21,18 @@ public class Chapter extends ParseObject {
     public Chapter() {
     }
 
-    static String processForReading(String text) {
-        text = text.replaceAll(" —", ", ");
-        text = text.replaceAll("—", "");
-        text = text.replaceAll("-", "");//TODo cambiar por expresion regular que comprueba que viene una palabra
-        text = text.replaceAll("–¿", "¿");
-        text = text.replaceAll("–¡", "¡");
-        text = text.replaceAll("No\\.", "No . ");
-        text = text.replaceAll("pie", "píe");
-        text = text.replaceAll("local", "lokal");
-        text = text.replaceAll("normal", " noormal");
-        text = text.replaceAll("<<", "");
-        text = text.replaceAll(">>", "");
-        text = text.replaceAll("\\.\\.\\.\\.", "...");
-        text = text.replaceAll("\\.\\.", ".");
-        text = text.replaceAll(":\\.", ".");
-        return text;
-    }
 
     public static String joinVersos(String[] versos, String sep) {
 
         StringBuilder builder = new StringBuilder();
 
         for (String s : Arrays.asList(versos)) {
-            myLog.add("div", "agregando: " + s);
+            myLog.add("agregando: " + s, "div");
             builder.append(s).append(sep);
         }
 
         final String s2 = builder.toString();
-        myLog.add("div", "afeter pegar de nuevo, queda:_" + s2);
+        myLog.add("afeter pegar de nuevo, queda:_" + s2, "div");
         return s2;
 
     }
@@ -107,7 +90,7 @@ public class Chapter extends ParseObject {
      * @return
      */
     public String getProcessedText() {
-        return processForReading(getText());
+        return myUtil.processForReading(getText());
     }
 
     public String shortDescription() {

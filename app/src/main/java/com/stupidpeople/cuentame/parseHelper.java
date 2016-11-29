@@ -17,45 +17,22 @@ import java.util.List;
 public class parseHelper {
 
     final private static String tag = "PARSE";
-    private static String PINBOOK = "pinBook";
-
-    /**
-     * Retrieve and stores in local DB
-     *
-     * @param iBook
-     * @param iChapter
-     * @param nChapters
-     */
-    static void importChapters(final int iBook, final int iChapter, final int nChapters, final TaskDoneCallback2 taskDoneCallback) {
+    static String PINBOOK = "pinBook";
 
 
-        final TaskDoneCallback2 taskGetAndPinSummary = new TaskDoneCallback2() {
-            @Override
-            public void onDone() {
-                getAndPinChapters(iBook, iChapter, nChapters, taskDoneCallback);
-            }
-
-            @Override
-            public void onError(String text, ParseException e) {
-                taskDoneCallback.onError(text, e);
-            }
-        };
-
-        getAndPinSummary(iBook, taskGetAndPinSummary);
-
-
-    }
-
-    private static void errorInParse(String s, ParseException e) {
-        myLog.add(tag, s + " " + e.getLocalizedMessage());
-        //TODO informar al usuario y ver qué hacer
+    public static void getIdsforbittenBooks(FindCallback<BookSummary> forbittenBooks) {
+        ParseQuery<BookSummary> q = ParseQuery.getQuery(BookSummary.class);
+        q.whereEqualTo("like", false);
+        q.fromPin(PINBOOK);
+        q.findInBackground(forbittenBooks);
     }
 
     public static void getBookSummary(final int iBook, final boolean local, final BookSumCallback bookCallback) {
 
         ParseQuery<BookSummary> q = ParseQuery.getQuery(BookSummary.class);
         q.whereEqualTo("libroId", iBook);
-        if (local) q.fromPin("pinBook");
+//        if (local) q.fromPin("pinBook");
+        if (local) q.fromPin(PINBOOK);
         q.getFirstInBackground(new GetCallback<BookSummary>() {
             @Override
             public void done(BookSummary bookSummary, ParseException e) {
@@ -64,33 +41,12 @@ public class parseHelper {
                     bookCallback.onReceived(bookSummary);
 
                 } else {
-                    bookCallback.onError("Getting summary book:" + iBook + " local: " + local, e);
+
+                    myLog.add("--- SUMMARY-- NO SE PUDO CARGAR DESDE LOCAL; CARGAREMOS DESDE WEB " + e.getLocalizedMessage(), parseHelper.tag);
+
+                    getBookSummary(iBook, false, bookCallback); //todo momentaneo, porque parece que no lo guarmamos en local
+//                    bookCallback.onError("Getting summary book:" + iBook + " local: " + local, e);
                 }
-            }
-        });
-    }
-
-    private static void getAndPinSummary(final int iBook, final TaskDoneCallback2 taskDoneCallback) {
-        getBookSummary(iBook, false, new BookSumCallback() {
-            @Override
-            public void onReceived(BookSummary bookSummary) {
-                //now pin
-                bookSummary.pinInBackground(new SaveCallback() {
-                    @Override
-                    public void done(ParseException e) {
-                        if (e == null) {
-                            taskDoneCallback.onDone();
-                        } else {
-                            taskDoneCallback.onError("pinning sumamry iBook" + iBook, e);
-                        }
-
-                    }
-                });
-            }
-
-            @Override
-            public void onError(String text, ParseException e) {
-                taskDoneCallback.onError(text, e);
             }
         });
     }
@@ -106,9 +62,9 @@ public class parseHelper {
         q.orderByAscending(fi);
         if (local) {
             q.fromPin(PINBOOK);
-            myLog.add(tag, "leido desde LOCAL");
+            myLog.add("leido desde LOCAL", tag);
         } else {
-            myLog.add(tag, "leido desde WEB");
+            myLog.add("leido desde WEB", tag);
         }
         q.findInBackground(cb);
     }
@@ -119,7 +75,7 @@ public class parseHelper {
             @Override
             public void done(List<Chapter> books, ParseException e) {
                 if (e == null) {
-                    myLog.add(tag, "--- Importados capitulos:" + books.size());
+                    myLog.add("--- Importados capitulos:" + books.size(), tag);
 
                     SaveCallback scb = new SaveCallback() {
                         @Override
@@ -149,7 +105,7 @@ public class parseHelper {
         ParseQuery<Chapter> q = ParseQuery.getQuery(Chapter.class);
         q.whereEqualTo("nLibro", iBook);
         q.whereEqualTo("nCapitulo", iChapter);
-        if (local) q.fromPin("pinBook");
+        if (local) q.fromPin(PINBOOK);
         q.getFirstInBackground(new GetCallback<Chapter>() {
             @Override
             public void done(Chapter chapter, ParseException e) {
@@ -209,45 +165,44 @@ public class parseHelper {
                     @Override
                     public void onReceived(final BookSummary bookSummary) {
 
-                        getAndPinSummary(bookId, new TaskDoneCallback2() {
+                        //pin book summary
+                        bookSummary.pinInBackground(PINBOOK, new SaveCallback() {
                             @Override
-                            public void onDone() {
-                                myLog.add(tag, "DONE. Summary book pinned " + bookId);
+                            public void done(ParseException e) {
+                                if (e == null) {
+                                    myLog.add("pinneado  summary", tag);
 
-                                // Dividimos en partes, para cargar independientemente
-                                int nChapters = bookSummary.nChapters();
-                                final int chapsPerPart = 500;
-                                final int nParts = (nChapters / chapsPerPart) + 1;
-                                final int[] iPinnedParts = {0};
+                                    // Dividimos en partes, para cargar independientemente
+                                    int nChapters = bookSummary.nChapters();
+                                    final int chapsPerPart = 500;
+                                    final int nParts = (nChapters / chapsPerPart) + 1;
+                                    final int[] iPinnedParts = {0};
 
-                                myLog.add(tag, "Libro " + bookId + " tiene " + nChapters + " que dividemos en pedazos de " + chapsPerPart +
-                                        ", quedando " + nParts + " partes.");
+                                    myLog.add("Libro " + bookId + " tiene " + nChapters + " que dividemos en pedazos de " + chapsPerPart +
+                                            ", quedando " + nParts + " partes.", tag);
 
-                                for (int i = 0; i < nParts; i++) {
-                                    final int iniChap = i * chapsPerPart;
-                                    getAndPinChapters(bookId, iniChap, chapsPerPart, new TaskDoneCallback2() {
-                                        @Override
-                                        public void onDone() {
-                                            myLog.add(tag, "DONE. Pinneados del libro " + bookId + " desde " + iniChap + " (+ " + chapsPerPart + ")");
-                                            iPinnedParts[0]++;
-                                            if (iPinnedParts[0] == nParts) task.onDone();
-                                        }
+                                    for (int i = 0; i < nParts; i++) {
+                                        final int iniChap = i * chapsPerPart;
+                                        getAndPinChapters(bookId, iniChap, chapsPerPart, new TaskDoneCallback2() {
+                                            @Override
+                                            public void onDone() {
+                                                myLog.add("DONE. Pinneados del libro " + bookId + " desde " + iniChap + " (+ " + chapsPerPart + ")", tag);
+                                                iPinnedParts[0]++;
+                                                if (iPinnedParts[0] == nParts) task.onDone();
+                                            }
 
-                                        @Override
-                                        public void onError(String text, ParseException e) {
-                                            task.onError("pinneando chapters desde " + iniChap + " (+ " + chapsPerPart + ")", e);
-                                        }
-                                    });
+                                            @Override
+                                            public void onError(String text, ParseException e) {
+                                                task.onError("pinneando chapters desde " + iniChap + " (+ " + chapsPerPart + ")", e);
+                                            }
+                                        });
+                                    }
+
+                                } else {
+                                    myLog.error("pinning sumamry iBook" + bookId, e);
                                 }
-
-                            }
-
-                            @Override
-                            public void onError(String text, ParseException e) {
-                                task.onError(text, e);
                             }
                         });
-
                     }
 
                     @Override
@@ -272,7 +227,7 @@ public class parseHelper {
             @Override
             public void done(ParseException e) {
                 if (e == null) {
-                    myLog.add(tag, "Unpinned all local books");
+                    myLog.add("Unpinned all local books", tag);
                     task.onDone();
                 } else {
                     task.onError("Removing internal storage books", e);
@@ -280,6 +235,8 @@ public class parseHelper {
             }
         });
     }
+
+    // Music
 
     /**
      * obtiene los ids de las bandas que no quiere oir
@@ -294,9 +251,9 @@ public class parseHelper {
         q.fromLocalDatastore();
         try {
             List<BookContability> sol = q.find();
-            myLog.add(tag, "numero de bandas odiadas:" + sol.size());
+            myLog.add("numero de bandas odiadas:" + sol.size(), tag);
             for (BookContability bookContability : sol) {
-                myLog.add(tag, "  ej:" + bookContability.getBookId());
+                myLog.add("  ej:" + bookContability.getBookId(), tag);
                 arr.add(bookContability.getBookId());
             }
         } catch (ParseException e) {
@@ -318,9 +275,9 @@ public class parseHelper {
         q.fromLocalDatastore();
         try {
             List<BookContability> sol = q.find();
-            myLog.add(tag, "numero de libros  odiadas:" + sol.size());
+            myLog.add("numero de libros  odiadas:" + sol.size(), tag);
             for (BookContability bookContability : sol) {
-                myLog.add(tag, "  ej:" + bookContability.getBookId());
+                myLog.add("  ej:" + bookContability.getBookId(), tag);
                 arr.add(bookContability.getBookId());
             }
         } catch (ParseException e) {
@@ -328,4 +285,5 @@ public class parseHelper {
         }
         return arr;
     }
+
 }

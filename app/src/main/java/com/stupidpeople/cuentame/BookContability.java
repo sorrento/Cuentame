@@ -48,7 +48,7 @@ public class BookContability extends ParseObject {
                     @Override
                     public void done(ParseException e) {
                         if (e == null) {
-                            myLog.add(tag, "pinneado book contability (book finished");
+                            myLog.add("pinneado book contability (book finished", tag);
                         }
                     }
                 });
@@ -79,7 +79,7 @@ public class BookContability extends ParseObject {
                     @Override
                     public void done(ParseException e) {
                         if (e == null) {
-                            myLog.add(tag, "pinneado book contability (book hated");
+                            myLog.add("pinneado book contability (book hated", tag);
                         }
                     }
                 });
@@ -106,7 +106,7 @@ public class BookContability extends ParseObject {
                     @Override
                     public void done(ParseException e) {
                         if (e == null) {
-                            myLog.add(tag, "pinneado book contability (JumpedIn");
+                            myLog.add("pinneado book contability (JumpedIn", tag);
                         }
                     }
                 });
@@ -147,7 +147,7 @@ public class BookContability extends ParseObject {
                         @Override
                         public void done(ParseException e) {
                             if (e == null) {
-                                myLog.add(tag, "created and pinned a leidos object");
+                                myLog.add("created and pinned a leidos object", tag);
                                 cb.onDone(po);
                             } else {
                                 cb.onError("creating a leidos object", e);
@@ -171,7 +171,7 @@ public class BookContability extends ParseObject {
     }
 
     private void setHated(boolean b) {
-        myLog.add(tag, "set hate this book=" + b);
+        myLog.add("set hate this book=" + b, tag);
         put(colIsHated, b);
     }
 

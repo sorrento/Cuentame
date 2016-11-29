@@ -39,11 +39,10 @@ public class myLog {
 
     /***
      * Add the text to a file which has TAG in the name. It also prints in this tag.
-     *
-     * @param text
+     *  @param text
      * @param TAG
      */
-    public static void add(String TAG, String text) {
+    public static void add(String text, String TAG) {
         try {
             Log.d(TAG, text);
 
@@ -98,7 +97,7 @@ public class myLog {
     }
 
     public static void error(String text, Exception e) {
-        add("ERROR", text + " | " + e.getLocalizedMessage());
+        add(text + " | " + e.getLocalizedMessage(), "ERROR");
     }
 
     public static void printTTSinfo(TextToSpeech t1) {
@@ -107,7 +106,7 @@ public class myLog {
 
         for (TextToSpeech.EngineInfo engineinfo : engines) {
             i++;
-            add("TTS", "Engine:" + i + engineinfo.name);
+            add("Engine:" + i + engineinfo.name, "TTS");
         }
 
         Set<Voice> ss = null;
@@ -116,9 +115,9 @@ public class myLog {
             i++;
             ss = t1.getVoices();
             for (Voice voice : ss) {
-                add("TTS", voice.toString());
+                add(voice.toString(), "TTS");
             }
-            add("TTS", "Speaking with:" + t1.getVoice().getName());
+            add("Speaking with:" + t1.getVoice().getName(), "TTS");
         }
     }
 }

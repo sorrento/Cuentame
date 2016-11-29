@@ -98,4 +98,8 @@ public class BookSummary extends ParseObject {
     public int getId() {
         return getInt("libroId");
     }
+
+    public void setLike(boolean b) {
+        put("like", b);
+    }
 }
