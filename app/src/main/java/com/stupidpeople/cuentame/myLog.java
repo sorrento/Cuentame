@@ -39,7 +39,8 @@ public class myLog {
 
     /***
      * Add the text to a file which has TAG in the name. It also prints in this tag.
-     *  @param text
+     *
+     * @param text
      * @param TAG
      */
     public static void add(String text, String TAG) {
@@ -54,13 +55,14 @@ public class myLog {
             String currentDateandTime = sdf.format(new Date());
 
 
-            int pid = android.os.Process.myPid();
-            int tid = android.os.Process.myTid();
+//            int pid = android.os.Process.myPid();
+//            int tid = android.os.Process.myTid();
 
             //TODO not sure if it put the tid of log...
             //BufferedWriter for performance, true to set append to file flag
             BufferedWriter buf = new BufferedWriter(new FileWriter(logFile, true));
-            buf.append(currentDateandTime + pid + "|" + tid + ":" + text);
+//            buf.append(currentDateandTime + pid + "|" + tid + ":" + text);
+            buf.append(currentDateandTime + ":" + text);
             buf.newLine();
             buf.flush();
             buf.close();

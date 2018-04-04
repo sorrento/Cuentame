@@ -12,6 +12,7 @@ import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.hardware.Sensor;
 import android.hardware.SensorManager;
+import android.media.AudioManager;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Build;
@@ -22,9 +23,11 @@ import android.speech.tts.Voice;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.app.NotificationCompat;
+import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -61,6 +64,8 @@ public class MainActivity extends AppCompatActivity {
     private static final String SHARETEXT = "shareText";
     private static final String SHAREAUDIO = "shareAudio";
     private static final int OFFSET = 2;
+    private static final int MEDIA_BUTTON_INTENT_EMPIRICAL_PRIORITY_VALUE = 10000;
+    protected static final String PREFS_LAN = "Language";
 
     final private String samsungEngine = "com.samsung.SMT";
     TextToSpeech t1;
@@ -73,6 +78,7 @@ public class MainActivity extends AppCompatActivity {
 
     private TextView txtText;
     private TextView txtDesc;
+    private TextView txtLocal;
     private Button btnPlayStop;
 
     private boolean interrupted = false;
@@ -91,7 +97,7 @@ public class MainActivity extends AppCompatActivity {
     // Shake
     private SensorManager mSensorManager;
     private Sensor mAccelerometer;
-    private ShakeDetector mShakeDetector;
+//    private ShakeDetector mShakeDetector;
 
     private List<BookSummary> allBandsSum = null;
     private boolean isShowingLyricsNotification = false;
@@ -103,6 +109,35 @@ public class MainActivity extends AppCompatActivity {
     private int iVersoIni;
     private int iVersoEnd;
     private String versoIni;
+    private Button btnGo;
+    private EditText edtChapter;
+    private EditText edtBook;
+
+    private boolean mlocal;
+    private MediaButtonIntentReceiver mMediaButtonReceiver;
+    private AudioManager manager;
+    private String currentLanguage;
+
+
+    private void speak(String s, boolean interrupting, String utterance) {
+
+        int queueMode = interrupting ? TextToSpeech.QUEUE_FLUSH : TextToSpeech.QUEUE_ADD;
+        interrupted = interrupting;
+
+        myLog.add("\n\n** SPEAK. Interrupt? " + interrupted, tag);
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+//            myLog.add("**enm speak, android moderno, apunto de hablar", tag);
+            t1.speak(s, queueMode, null, utterance);
+
+        } else {
+            HashMap<String, String> map = new HashMap<>();
+            map.put(TextToSpeech.Engine.KEY_PARAM_UTTERANCE_ID, utterance);
+            t1.speak(s, queueMode, map);
+        }
+
+    }
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -125,25 +160,44 @@ public class MainActivity extends AppCompatActivity {
 
         txtText = (TextView) findViewById(R.id.txtCurrentText);
         txtDesc = (TextView) findViewById(R.id.txtCurrentDesc);
+        txtLocal = (TextView) findViewById(R.id.txtFromLocal);
         btnPlayStop = (Button) findViewById(R.id.btn_play_stop);
         btnNext = (Button) findViewById(R.id.btn_next);
         btnLike = (Button) findViewById(R.id.btn_like);
+        btnGo = (Button) findViewById(R.id.btn_go);
+        edtChapter = (EditText) findViewById(R.id.etChapter);
+        edtBook = (EditText) findViewById(R.id.etbook);
+
+
+        // Bluetooth controls
+//        manager = (AudioManager) getSystemService(AUDIO_SERVICE);
+        mMediaButtonReceiver = new MediaButtonIntentReceiver();
+        IntentFilter mediaFilter = new IntentFilter(Intent.ACTION_MEDIA_BUTTON);
+        mediaFilter.setPriority(MEDIA_BUTTON_INTENT_EMPIRICAL_PRIORITY_VALUE);
+        registerReceiver(mMediaButtonReceiver, mediaFilter);
+
+//        ClassOnAudioFocusChangeListener a = new ClassOnAudioFocusChangeListener();
+
+        //
+//        ((AudioManager)getSystemService(AUDIO_SERVICE)).registerMediaButtonEventReceiver(
+//                new ComponentName(this, MediaButtonReceiver.class));
+
 
         // ShakeDetector initialization
-        mSensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
-        mAccelerometer = mSensorManager
-                .getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
-        mShakeDetector = new ShakeDetector();
-        mShakeDetector.setOnShakeListener(new ShakeDetector.OnShakeListener() {
-
-            @Override
-            public void onShake(int count) {
-                Toast.makeText(MainActivity.this, "shake:" + count, Toast.LENGTH_SHORT).show();
-                onClickPlayStop(null);
-            }
-        });
+//        mSensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
+//        mAccelerometer = mSensorManager
+//                .getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
+//        mShakeDetector = new ShakeDetector();
+//        mShakeDetector.setOnShakeListener(new ShakeDetector.OnShakeListener() {
+//
+//            @Override
+//            public void onShake(int count) {
+//                Toast.makeText(MainActivity.this, "shake:" + count, Toast.LENGTH_SHORT).show();
+//                onClickPlayStop(null);
+//            }
+//        });
         // Add the following line to register the Session Manager Listener onResume
-        mSensorManager.registerListener(mShakeDetector, mAccelerometer, SensorManager.SENSOR_DELAY_UI);
+//        mSensorManager.registerListener(mShakeDetector, mAccelerometer, SensorManager.SENSOR_DELAY_UI);
 
 
         mNotificationManager =
@@ -152,6 +206,8 @@ public class MainActivity extends AppCompatActivity {
 //        enginePackageName	String: The package name for the synthesis engine (e.g. "com.svox.pico")
 
 
+        // Obtenemos el que está en memoria
+        currentLanguage = settings.getString(PREFS_LAN, "ES");
         t1 = new TextToSpeech(getApplicationContext(), new TextToSpeech.OnInitListener() {
             @Override
             public void onInit(int status) {
@@ -164,23 +220,20 @@ public class MainActivity extends AppCompatActivity {
                         @Override
                         public void onInit(int status) {
                             if (status != TextToSpeech.ERROR) {
-                                setSpeakLanguage("ES", t1);
+                                setSpeakLanguage(currentLanguage, t1);
 
                                 t1.setOnUtteranceProgressListener(new uListener());
 
                                 if (settings.getBoolean(PREFS_FIRST_TIME, true)) welcomeMessage();
-                                else courtesyMessage("A ver donde me quedé... ", true);
+                                else courtesy(generaMsgDondeMeQuede(), true);
 
-                                myLog.add("empezando la actividad, tramemos 10", tag2);
+                                myLog.add("Empezando la actividad, tramemos 10", tag2);
 
-
-                                getBulkAndPlay(lastBook, lastChapter, 10, entireBookMode);
+                                getBulkAndPlay(lastBook, lastChapter, 10, entireBookMode, false);
 
                             }
                         }
                     }, engine);
-
-
                 }
             }
         });
@@ -231,25 +284,30 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        myLog.add("*********Resumuinf", tag2);
-
-
-//        if (!t1.isSpeaking() && currentChapter != null) {
-//            playCurrentChapter();
-//        }
+//        myLog.add("*********Resumuinf", tag2);
+        if (currentChapter != null) {
+            edtChapter.setHint(Integer.toString(currentChapter.getChapterId()));
+            edtBook.setText(Integer.toString(currentChapter.getBookId()));
+            if (mlocal) {
+                txtLocal.setText("FROM LOCAL");
+            } else {
+                txtLocal.setText("FROM WEB");
+            }
+        }
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
         this.unregisterReceiver(eventsReceiver);
+        this.unregisterReceiver(mMediaButtonReceiver);
         settings.edit().putBoolean(PREFS_MODE, entireBookMode).commit();
         settings.edit().putBoolean(PREFS_MODE_MUSIC, musicMode).commit();
 
         removeLyricNotification();
         t1.shutdown();
         // Add the following line to unregister the Sensor Manager onPause
-        mSensorManager.unregisterListener(mShakeDetector);
+//        mSensorManager.unregisterListener(mShakeDetector);
     }
 
     public void setCurrentChapter(final Chapter currentChapter) {
@@ -315,23 +373,24 @@ public class MainActivity extends AppCompatActivity {
                 .setProgress(currentBook.nChapters(), currentChapter.getChapterId(), false)
                 .setLargeIcon(currentBook.getImageBitmap())
                 .setTicker(currentBook.fakeTitle() + "\n" + currentBook.fakeAuthor())
+                .setProgress(currentBook.nChapters(), currentChapter.getChapterId(), false)
 
                 .build();
         // mId allows you to update the notification later on.
         mNotificationManager.notify(1, notification);
     }
 
-    private void courtesyMessage(String s, boolean interrupt) {
-        myLog.add("Courtesy: " + s, tag);
-        speak(s, interrupt, COURTESY);
-
-    }
-
     private void welcomeMessage() {
         settings.edit().putBoolean(PREFS_FIRST_TIME, false).commit();
-        courtesyMessage("Hola, te voy a contar algunas de las historias que más me gustan. Espero que a ti también." +
+        final String s = "Hola, te voy a contar algunas de las historias que más me gustan. Espero que a ti también." +
                 " Si no te gusta como suena mi voz, instala un sintetizador nuevo. Busca en el google play poniendo TTS." +
-                " Vamos a ver...", true);
+                " Vamos a ver...";
+        final boolean interrupting = true;
+        courtesy(s, interrupting);
+    }
+
+    private void courtesy(String s, boolean interrupting) {
+        speak(s, interrupting, COURTESY + "_" + myUtil.shortenText(s, 5));
     }
 
     //Play
@@ -345,7 +404,7 @@ public class MainActivity extends AppCompatActivity {
      */
     private void getRandomBookSummary(boolean musicMode, ArrayList<Integer> hatedIds, final BookSumCallback cb) {
 
-        myLog.add("*****Getting random, except the hated: " + hatedIds, tag);
+        myLog.add("*****Getting random, except the hated: " + hatedIds, "get");
         ParseQuery<BookSummary> q = ParseQuery.getQuery(BookSummary.class);
 
         if (musicMode) { // get all bands
@@ -387,18 +446,18 @@ public class MainActivity extends AppCompatActivity {
                         final int nBooks = bookSummary.getInt("libroId");
                         final int iBook = new Random().nextInt(nBooks + 1);
 
-                        myLog.add("RANDOM: elegido el libro:" + iBook + "/" + nBooks, tag2);
+                        myLog.add("RANDOM: elegido el libro:" + iBook + "/" + nBooks, "get");
                         parseHelper.getBookSummary(iBook, cb);
 
                     } else {
-                        myLog.add("EEROR en getting the maximun book" + e.getLocalizedMessage(), tag);
+                        myLog.add("EEROR en getting the maximun book" + e.getLocalizedMessage(), "get" +
+                                "");
                     }
                 }
             });
 
         }
     }
-
 
     private void getRandomChaptersAndPlay(final int chapters, ArrayList<Integer> hatedIds) {
 
@@ -412,25 +471,89 @@ public class MainActivity extends AppCompatActivity {
 
                     currentBook = bookSummary;
 
-                    final int iChapter = new Random().nextInt(bookSummary.nChapters() + 1);
+                    settings.edit().putString(PREFS_LAN, bookSummary.getLanguage()).commit();
+                    setSpeakLanguage(currentBook.getLanguage(), t1);
+
+                    final int n = bookSummary.nChapters() + 1;
+                    final int iChapter = new Random().nextInt(n);
+                    myLog.add("Random chapter:" + iChapter + "/" + n, "get");
 
 //                    BookContability.incrementJumpedInBook(bookSummary); TODO MARCAR libro por visita
 
-                    getBulkAndPlay(bookSummary.getId(), iChapter, chapters, false);
+                    getBulkAndPlay(bookSummary, iChapter, chapters, false, true);
                 }
 
                 @Override
                 public void onError(String text, ParseException e) {
-                    myLog.error(text, e);
+                    myLog.add("error " + text + e.getLocalizedMessage(), "get");
+//                    myLog.error(text, e);
                 }
             };
 
             getRandomBookSummary(musicMode, hatedIds, cb);
 
-
         } else {
-            courtesyMessage("Tengo un problema, no puedo recordar más historias. Si conectas internet, seguro que me refresca la memoria.", false);
+            myLog.add("sin conección", "get");
+            courtesy("Tengo un problema, no puedo recordar más historias. Si conectas internet, seguro que me refresca la memoria.", false);
         }
+    }
+
+
+    private void getBulkAndPlay(BookSummary bookSummary, final int iChapter, final int bufferSize, final boolean local, final boolean interrupt) {
+
+        final int iBook = bookSummary.getId();
+
+        parseHelper.getChapters(iBook, iChapter, bufferSize, local, new FindCallback<Chapter>() {
+
+            @Override
+            public void done(List<Chapter> chapters, ParseException e) {
+                if (e == null) {
+                    myLog.add("--- Traidos capitulos: " + chapters.size() + " desde local?" + local, tag);
+
+                    mlocal = local;
+
+                    if (chapters.size() > 0) {
+                        setCurrentChapter(chapters.get(0));
+                        iBuffer = 0;
+                        chaptersPreLoaded = chapters;
+                        playCurrentChapter(interrupt);
+
+                    } else {
+                        if (currentChapter == null) {
+
+                            final String text = "No hay current chapter, ni hemos podido cargar nada";
+
+                            Toast.makeText(MainActivity.this, text, Toast.LENGTH_SHORT).show();
+                            myLog.add(text, tag);
+
+                        } else {
+                            //Hemos llegado al final
+                            if (currentBook.nChapters() == currentChapter.getChapterId()) {
+                                courtesy("Fin. Espero que te haya gustado tanto como a mi.", false);
+                                if (entireBookMode) {
+
+                                    entireBookMode = false;
+//                                        BookContability.setFinishedBook(currentBook); lo ponenoms como "Lo odio"
+                                    marcarLeidoYponerNuevoRandom();
+
+                                } else {
+                                    courtesy("Ah, pero no lo habías oído desde el principio.", false);
+                                    onClickLike(null);
+                                }
+                            } else {
+                                myLog.add("como no hemos cargado chapterss, ponemos random", tag);
+                                getRandomChaptersAndPlay(10, new ArrayList<Integer>());
+                            }
+                        }
+
+
+                    }
+
+                } else {
+                    myLog.add("errer---" + e.getLocalizedMessage(), tag);
+                }
+            }
+        });
     }
 
     /**
@@ -440,60 +563,16 @@ public class MainActivity extends AppCompatActivity {
      * @param iChapter
      * @param bufferSize
      */
-    private void getBulkAndPlay(final int iBook, final int iChapter, final int bufferSize, final boolean local) {
+    private void getBulkAndPlay(final int iBook, final int iChapter, final int bufferSize, final boolean local, final boolean interrupt) {
 
         BookSumCallback cb = new BookSumCallback() {
             @Override
             public void onReceived(BookSummary bookSummary) {
                 currentBook = bookSummary;
 
-                parseHelper.getChapters(iBook, iChapter, bufferSize, local, new FindCallback<Chapter>() {
-                    @Override
-                    public void done(List<Chapter> chapters, ParseException e) {
-                        if (e == null) {
-                            myLog.add("--- Traidos capitulos: " + chapters.size() + " desde local?" + local, tag);
-
-                            if (chapters.size() > 0) {
-                                setCurrentChapter(chapters.get(0));
-                                iBuffer = 0;
-                                chaptersPreLoaded = chapters;
-                                myLog.add("==Play current by: getbugkandplay", tag);
-                                playCurrentChapter();
-
-                            } else {
-                                if (currentChapter == null) {
-                                    //algun error así que cargamos el libro de nuevo
-                                    myLog.add(tag, "no hay current chapter, cargamos desde web el libro");
-
-                                    getBulkAndPlay(iBook, iChapter, 10, false);
-                                } else {
-                                    //Hemos llegado al final
-                                    if (currentBook.nChapters() == currentChapter.getChapterId()) {
-                                        courtesyMessage("Fin. Espero que te haya gustado tanto como a mi.", false);
-                                        if (entireBookMode) {
-
-                                            entireBookMode = false;
-//                                        BookContability.setFinishedBook(currentBook); lo ponenoms como "Lo odio"
-                                            marcarLeidoYponerNuevoRandom();
-
-                                        } else {
-                                            courtesyMessage("Ah, pero no lo habías oído desde el principio.", false);
-                                            onClickLike(null);
-                                        }
-                                    } else {
-                                        myLog.add("como no hemos cargado chaps, ponemos random", tag);
-                                        getRandomChaptersAndPlay(10, new ArrayList<Integer>());
-                                    }
-                                }
 
 
-                            }
-
-                        } else {
-                            myLog.add("errer---" + e.getLocalizedMessage(), tag);
-                        }
-                    }
-                });
+                getBulkAndPlay(bookSummary, iChapter, bufferSize, local, interrupt);
 
             }
 
@@ -515,9 +594,8 @@ public class MainActivity extends AppCompatActivity {
             if (currentChapter == null) {
                 getRandomChaptersAndPlay(10, new ArrayList<Integer>());
             } else {
-                getBulkAndPlay(currentChapter.getBookId(), currentChapter.getChapterId() + 1, 10, entireBookMode);
+                getBulkAndPlay(currentBook, currentChapter.getChapterId() + 1, 10, entireBookMode, true);
             }
-
 
         } else {
 
@@ -525,11 +603,11 @@ public class MainActivity extends AppCompatActivity {
             final Chapter chapter = chaptersPreLoaded.get(iBuffer);
             setCurrentChapter(chapter);
             myLog.add("==Play current by: buffer+1 (playnext)", "mhp");
-            playCurrentChapter();
+            playCurrentChapter(false);
         }
     }
 
-    private void playCurrentChapter() {
+    private void playCurrentChapter(boolean interrupt) {
 
         if (currentChapter == null) {
             myLog.add("..Playnext porque play current pero no hay ninguno", tag);
@@ -562,7 +640,7 @@ public class MainActivity extends AppCompatActivity {
             engine = samsungEngine;
         } else {
             Toast.makeText(MainActivity.this, "Instale un sintenizador bueno, la calidad no será aceptable. Por ejemplo, tts samsung", Toast.LENGTH_SHORT).show();
-            courtesyMessage("Instale un sintenizador bueno, la calidad no será aceptable. Por ejemplo, el sintenizador de Samsung", false);
+            courtesy("Instale un sintenizador bueno, la calidad no será aceptable. Por ejemplo, el sintenizador de Samsung", false);
             engine = t1.getDefaultEngine();
         }
         return engine;
@@ -587,12 +665,12 @@ public class MainActivity extends AppCompatActivity {
             btnPlayStop.setText("STOP");
 
             myLog.add("==Play current by: pressed PLAY", "mhp");
-            playCurrentChapter();
+            playCurrentChapter(true);
         }
     }
 
     public void onClickNext(View view) {
-//        interrupted = true;
+
         entireBookMode = false;
         myLog.add("*********PRESSED NEXT", tag);
 
@@ -613,13 +691,29 @@ public class MainActivity extends AppCompatActivity {
             //avanzamos en el buffer y luego saltanos
             playNext();
         } else {
-            courtesyMessage("Vaya, no te ha gustado. Veamos otra cosa...", true);
 
+            courtesy(generaMsgNoTeGusta(), true);
             marcarLeidoYponerNuevoRandom();
-
         }
 
 
+    }
+
+    private String generaMsgNoTeGusta() {
+        final ArrayList<String> msg = new ArrayList<>();
+
+        msg.add("Vaya, no te ha gustado. Probemos otra cosa..");
+        msg.add("Uf, no le vas a dar una oportunidad?");
+        msg.add("Bueno, en gustos no hay nada escrito..");
+        msg.add("¡Hala! ¡Como si fuera mejor el libro que escribiste tú! ");
+        msg.add("La verdad es que era un poco flojillo...");
+        msg.add("¿No será mi voz la que no te gusta, verdad?");
+        msg.add("No culpe al libro, eres tú el que se distrae...");
+        msg.add("Mira, el próximo es güeno, güeno...");
+        msg.add("A tomar por saco, veamos otro");
+
+
+        return msg.get(new Random().nextInt(msg.size()));
     }
 
     private void marcarLeidoYponerNuevoRandom() {
@@ -628,7 +722,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void done(ParseException e) {
                 if (e == null) {
-                    myLog.add("Marcado el libro lo odio:" + currentBook.getTitle(), tag);
+                    myLog.add("Marcado el libro lo odio:" + currentBook.getTitle() + " " + currentBook.getId(), tag);
                 } else {
                     myLog.error("poniendo no me gusta el libro", e);
                 }
@@ -650,39 +744,58 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void onClickLike(View view) {
+        if (currentBook != null) {
+            myLog.add("*********PRESSED LIKE", tag);
 
-        myLog.add("*********PRESSED LIKE", tag);
-
-        btnLike.setEnabled(false);
+            btnLike.setEnabled(false);
 
 
-        if (isOnline()) {
-            final int bookId = currentChapter.getBookId();
+            if (isOnline()) {
+
+                final int bookId = currentChapter.getBookId();
 //            nextQueueMode = TextToSpeech.QUEUE_FLUSH;
+                courtesy(generaMsgTeGusta(), true);
+                //            nextQueueMode = TextToSpeech.QUEUE_ADD;
+                getBulkAndPlay(currentBook, 1, 10, false, false);
+
+
+                parseHelper.importWholeBook(bookId, new TaskDoneCallback2() {
+                    @Override
+                    public void onDone() {
+                        myLog.add("DONE. book " + bookId + " loaded in internal storage", tag);
+                        entireBookMode = true;
+                    }
+
+                    @Override
+                    public void onError(String text, ParseException e) {
+                        myLog.error("fallo en importar los libros |" + text, e);
+                    }
+                });
 //            interrupted = true;
-            courtesyMessage("Bueno, ya que te gusta el relato, veamo si recuerdo cómo empezaba...", true);
-//            nextQueueMode = TextToSpeech.QUEUE_ADD;
-            getBulkAndPlay(bookId, 1, 10, false);
 
-
-            parseHelper.importWholeBook(bookId, new TaskDoneCallback2() {
-                @Override
-                public void onDone() {
-                    myLog.add("DONE. book " + bookId + " loaded in internal storage", tag);
-                    entireBookMode = true;
-                }
-
-                @Override
-                public void onError(String text, ParseException e) {
-                    myLog.error("fallo en importar los libros |" + text, e);
-                }
-            });
-
+            } else {
+                courtesy("Te lo contaría desde el principio, pero necesitamos conección a internet para ayudarme a recordar. Seguiré por donde iba...", false);
+                myLog.add("==Play current by: pressedlike, but not online", "mhp");
+                playCurrentChapter(false);
+            }
         } else {
-            courtesyMessage("Te lo contaría desde el principio, pero necesitamos conección a internet para ayudarme a recordar. Seguiré por donde iba...", false);
-            myLog.add("==Play current by: pressedlike, but not online", "mhp");
-            playCurrentChapter();
+            myLog.add("no habia libro para hacer like", "errr");
         }
+    }
+
+    private String generaMsgTeGusta() {
+
+        final ArrayList<String> msg = new ArrayList<>();
+
+        msg.add("Bueno, ya que te gusta el relato, veamo si recuerdo cómo empezaba...");
+        msg.add("Empecemos por el principio...");
+        msg.add("Había una vez, hace mucho mucho mucho tiempo...");
+        msg.add("Hace mucho tiempo, en una galaxia lejana...");
+        msg.add("En algún lugar de la mancha, de cuyo nombre no quiero acordarme...");
+        msg.add("¡Eso! Se empieza desde el principio");
+        msg.add("Ahora te cuento lo que te has perdido.");
+
+        return msg.get(new Random().nextInt(msg.size()));
     }
 
     /**
@@ -705,21 +818,6 @@ public class MainActivity extends AppCompatActivity {
         mNotificationManager.cancel(2);
     }
 
-    private void speak(String s, boolean interrupting, String utterance) {
-
-        int queueMode = interrupting ? TextToSpeech.QUEUE_FLUSH : TextToSpeech.QUEUE_ADD;
-        interrupted = interrupting;
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            t1.speak(s, queueMode, null, utterance);
-
-        } else {
-            HashMap<String, String> map = new HashMap<>();
-            map.put(TextToSpeech.Engine.KEY_PARAM_UTTERANCE_ID, utterance);
-            t1.speak(s, queueMode, map);
-        }
-
-    }
 
     private void getRandomBand(BookSumCallback cb) {
         Random random = new Random();
@@ -866,6 +964,18 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
+    public void onClickGo(View view) {
+        try {
+            int nChap = Integer.parseInt(edtChapter.getText().toString());
+            int nBook = Integer.parseInt(edtBook.getText().toString());
+
+            entireBookMode = false;
+            getBulkAndPlay(nBook, nChap, 10, false, true);
+        } catch (NumberFormatException e) {
+            myLog.error("en nuero para el boton go", e);
+        }
+    }
+
     private interface StringCallback {
         void onDone(String[] versos);
     }
@@ -879,10 +989,10 @@ public class MainActivity extends AppCompatActivity {
 
 //            if (utteranceId.equals(uttsavingFile)) myLog.add(tagW, " onstart uttery");
 
-            if (!utteranceId.equals(COURTESY)) showMediaNotification();
+            if (!utteranceId.startsWith(COURTESY)) showMediaNotification();
 
             //notificación con la letra
-            if (musicMode && !utteranceId.equals(COURTESY)) {
+            if (musicMode && !utteranceId.startsWith(COURTESY)) {
                 showLyricsNotification();
                 isShowingLyricsNotification = true;
             }
@@ -903,7 +1013,7 @@ public class MainActivity extends AppCompatActivity {
             //Quitar la notificaciónde lyrics si es que
 //            if (isShowingLyricsNotification) removeLyricNotification();
 
-            if (utteranceId.equals(COURTESY)) {
+            if (utteranceId.startsWith(COURTESY)) {
                 nextQueueMode = TextToSpeech.QUEUE_FLUSH;
 
             } else if (utteranceId.equals(uttsavingFile)) {
@@ -1024,5 +1134,82 @@ public class MainActivity extends AppCompatActivity {
 //
 //    }
 
+    private String generaMsgDondeMeQuede() {
+        final ArrayList<String> msg = new ArrayList<>();
 
+        msg.add("A ver donde me quedé... ");
+        msg.add("Creo que iba por aquí...");
+        msg.add("¿Qué fue lo último que te conté? ah, ya sé...");
+        msg.add("A ver cómo era esto...");
+        msg.add("Memoria, memoria, no me falles...");
+        msg.add("¿Por dónde iba? Ah, sí, calla calla...");
+        msg.add("Atento que ahora viene la parte crucial...");
+        msg.add("Te eché de menos. Pero te estaba esperando...");
+        msg.add("Te está enganchando, verdad? Espera a oir lo que viene...");
+
+
+        return msg.get(new Random().nextInt(msg.size()));
+    }
+
+
+    public class clsMediaButtonReceiver extends BroadcastReceiver {
+
+        @Override
+        public void onReceive(Context context, Intent intent) {  //This is never shown
+            Toast toast1 = Toast.makeText(context, intent.getAction(), Toast.LENGTH_SHORT);
+            toast1.show();
+        }
+
+    }
+
+    private class MediaButtonIntentReceiver extends BroadcastReceiver {
+
+        public MediaButtonIntentReceiver() {
+            super();
+        }
+
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            String intentAction = intent.getAction();
+            if (!Intent.ACTION_MEDIA_BUTTON.equals(intentAction)) {
+                return;
+            }
+            KeyEvent event = intent.getParcelableExtra(Intent.EXTRA_KEY_EVENT);
+            if (event == null) {
+                return;
+            }
+            int action = event.getAction();
+            if (action == KeyEvent.ACTION_DOWN) {
+                Toast.makeText(context, "apretado bluetot", Toast.LENGTH_SHORT).show();
+                onClickPlayStop(null);
+            }
+            abortBroadcast();
+        }
+
+//    boolean onKeyDown(int keyCode, KeyEvent event) {
+//        AudibleReadyPlayer abc;
+//        switch (keyCode) {
+//            case KeyEvent.KEYCODE_MEDIA_FAST_FORWARD:
+//                // code for fast forward
+//                return true;
+//            case KeyEvent.KEYCODE_MEDIA_NEXT:
+//                // code for next
+//                return true;
+//            case KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE:
+//                // code for play/pause
+//                return true;
+//            case KeyEvent.KEYCODE_MEDIA_PREVIOUS:
+//                // code for previous
+//                return true;
+//            case KeyEvent.KEYCODE_MEDIA_REWIND:
+//                // code for rewind
+//                return true;
+//            case KeyEvent.KEYCODE_MEDIA_STOP:
+//                // code for stop
+//                return true;
+//        }
+//        return false;
+//    }
+    }
 }
+

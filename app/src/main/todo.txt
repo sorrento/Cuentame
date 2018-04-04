@@ -1,10 +1,33 @@
+
+- quitar sacudida
+
+- poner boton bluetooth
+	tendré que hacer el service
+	y ahi,	esto
+	https://developer.android.com/reference/android/support/v4/media/session/MediaButtonReceiver.html
+
+		http://stackoverflow.com/questions/8072663/bluetooth-audio-controls-in-android
+		http://stackoverflow.com/questions/17819649/how-to-capture-key-events-from-bluetooth-headset-with-android
+
+using media session
+	http://stackoverflow.com/questions/39410268/how-to-listen-to-action-down-key-pressed-event-in-android-onmediabuttonevent/39413753#39413753
+
+que sea un player.. (ya sea con el media controller o proceso BG)
+haspet
+lectura de mayúscualas?
+ver que se salta de libro en ocasiones
+mejor gestion de "cargar en memoria"
+
 ---- alto
+
 	cuando se borra los internos en parse?
 	- arreglar el que se desarrolla en diferentes hilos
 	- hacer servicio?
 	- widget
 ---- medio
+	- que apareza el chap y book actual al cambiar, en edttext
 	- quitar activitidad
+
 
 ---- detalles
 	- al quitar auricular que se pare
@@ -14,7 +37,6 @@
 	- hacer widget en portada
 	- al salir de la app se le olvida cómo parar el sonido
 	- servicio para que no se interrumpa?
-	-pie,sos
 
  /////////////////// nombre de engides y voces
   [EngineInfo{name=com.samsung.SMT}, EngineInfo{name=com.google.android.tts},   EngineInfo{name=com.googlecode.eyesfree.espeak}]

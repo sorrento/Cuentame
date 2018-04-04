@@ -12,7 +12,7 @@ public class myUtil {
 //        myLog.add("before:" + t, "ree");
 
 //        t = t.replaceAll("([\\w\\?]) —(\\w)", "$1, $2"); // el guión por coma
-        t = t.replaceAll("([\\w\\?]) (—|-)(\\w)", "$1, $3"); // el guión por coma
+        t = t.replaceAll("([\\w\\?]) (—|-|–)(\\w)", "$1, $3"); // el guión por coma
         t = t.replaceAll("(-|—|–)", " "); //Los que quedan, por espacio
 //        t = t.replaceAll("^(-|—|–) ?(¿|\\w+¡|)", "$2"); //al inicio con guion
 //        t = t.replaceAll("\\n ?(-|—|–) ?(¿|\\w+¡|)", "\n$2"); //principio de linea con guion

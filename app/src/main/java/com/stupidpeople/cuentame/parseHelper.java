@@ -39,13 +39,15 @@ public class parseHelper {
 
                 if (e == null) {
                     bookCallback.onReceived(bookSummary);
-
                 } else {
 
-                    myLog.add("--- SUMMARY-- NO SE PUDO CARGAR DESDE LOCAL; CARGAREMOS DESDE WEB " + e.getLocalizedMessage(), parseHelper.tag);
+                    myLog.add("libro"+ iBook + "local="+local+" Error obteniendo book summary:" + e.getLocalizedMessage(), parseHelper.tag);
 
-                    getBookSummary(iBook, false, bookCallback); //todo momentaneo, porque parece que no lo guarmamos en local
+                    if (local) {
+                        myLog.add("--- SUMMARY-- NO SE PUDO CARGAR DESDE LOCAL; CARGAREMOS DESDE WEB " + e.getLocalizedMessage(), parseHelper.tag);
+                        getBookSummary(iBook, false, bookCallback); //todo momentaneo, porque parece que no lo guarmamos en local
 //                    bookCallback.onError("Getting summary book:" + iBook + " local: " + local, e);
+                    }
                 }
             }
         });
@@ -62,9 +64,9 @@ public class parseHelper {
         q.orderByAscending(fi);
         if (local) {
             q.fromPin(PINBOOK);
-            myLog.add("leido desde LOCAL", tag);
+            myLog.add("leyendo  desde LOCAL", tag);
         } else {
-            myLog.add("leido desde WEB", tag);
+            myLog.add("leyendo desde WEB", tag);
         }
         q.findInBackground(cb);
     }
@@ -73,9 +75,9 @@ public class parseHelper {
 
         FindCallback<Chapter> cb = new FindCallback<Chapter>() {
             @Override
-            public void done(List<Chapter> books, ParseException e) {
+            public void done(List<Chapter> chapters, ParseException e) {
                 if (e == null) {
-                    myLog.add("--- Importados capitulos:" + books.size(), tag);
+                    myLog.add("--- Importados capitulos:" + chapters.size(), tag);
 
                     SaveCallback scb = new SaveCallback() {
                         @Override
@@ -89,7 +91,7 @@ public class parseHelper {
                     };
 
                     // PIN them
-                    ParseObject.pinAllInBackground(PINBOOK, books, scb);
+                    ParseObject.pinAllInBackground(PINBOOK, chapters, scb);
 
                 } else {
                     taskDoneCallback.onError("getting lot of chapters ", e);

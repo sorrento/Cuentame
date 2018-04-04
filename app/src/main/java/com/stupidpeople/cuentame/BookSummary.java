@@ -102,4 +102,10 @@ public class BookSummary extends ParseObject {
     public void setLike(boolean b) {
         put("like", b);
     }
+
+    public String getLanguage() {
+        String language = getString("idioma");
+        if (language == null) language = "ES";
+        return language;
+    }
 }

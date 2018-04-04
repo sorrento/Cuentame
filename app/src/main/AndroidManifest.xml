@@ -5,13 +5,10 @@
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.MEDIA_CONTENT_CONTROL" />
+    <uses-permission android:name="android.permission.BLUETOOTH" />
     <!--for log and save audio-->
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <!--SHAKE-->
-    <uses-feature
-        android:name="android.hardware.sensor.accelerometer"
-        android:required="true" />
-
     <application
         android:name=".Cuentame"
         android:allowBackup="true"
@@ -28,10 +25,21 @@
 
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+    <!--<receiver-->
+            <!--android:name="MainActivity$MediaButtonEventReceiver">            -->
+            <!--<intent-filter android:priority="1000" >-->
+            <!--<action android:name="android.intent.action.MEDIA_BUTTON" />-->
+            <!--</intent-filter>-->
+            <!--</receiver>-->
+
         </activity>
     </application>
+
+    <uses-feature
+        android:name="android.hardware.sensor.accelerometer"
+        android:required="true" />
+
 
 </manifest>

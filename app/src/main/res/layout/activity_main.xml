@@ -32,11 +32,46 @@
             android:text="like" />
     </LinearLayout>
 
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <EditText
+            android:id="@+id/etChapter"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:ems="10"
+            android:inputType="number" />
+
+        <EditText
+            android:id="@+id/etbook"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:ems="10"
+            android:inputType="number" />
+
+        <Button
+            android:id="@+id/btn_go"
+            android:layout_width="100dp"
+            android:layout_height="wrap_content"
+            android:onClick="onClickGo"
+            android:text="go" />
+    </LinearLayout>
+
     <TextView
         android:id="@+id/txtCurrentDesc"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Chapter" />
+
+    <TextView
+        android:id="@+id/txtFromLocal"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Local?" />
 
     <TextView
         android:id="@+id/txtCurrentText"
