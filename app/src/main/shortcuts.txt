@@ -1,0 +1,18 @@
+shortcuts Android Studio
+
+CTRL ALT L          arrange code
+
+CTRL B              ir a definicion
+CTRL SHIFT I        preview de funcion
+
+CTRL P              muestra los parametros de una funcion
+CTRL Y              borra una linea
+CTRL W              selecciona aumentativamente
+
+F2, ALT F2          posiciona en next /last error
+F11                 bookmark código
+F6                  move
+
+CTRL J              aplicar un template
+ALT INSERT          templates, por ejemplo, toString
+ALT F8 (o click)    en debuger, para saber valor de expresio seleccionada
