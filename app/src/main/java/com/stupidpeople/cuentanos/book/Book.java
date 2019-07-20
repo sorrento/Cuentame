@@ -3,11 +3,9 @@ package com.stupidpeople.cuentanos.book;
 import com.parse.FindCallback;
 import com.parse.ParseException;
 import com.stupidpeople.cuentanos.Callbacks.BookSumCallback;
-import com.stupidpeople.cuentanos.Chapter;
 import com.stupidpeople.cuentanos.Lector.GenericTaskInterface;
 import com.stupidpeople.cuentanos.Lector.ReaderEvents;
-import com.stupidpeople.cuentanos.Memoria;
-import com.stupidpeople.cuentanos.Preferences;
+import com.stupidpeople.cuentanos.utils.Preferences;
 import com.stupidpeople.cuentanos.utils.myLog;
 
 import java.util.List;

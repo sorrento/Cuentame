@@ -6,6 +6,7 @@ import android.speech.tts.Voice;
 import android.support.annotation.NonNull;
 
 import com.stupidpeople.cuentanos.Lector.TipoFrase;
+import com.stupidpeople.cuentanos.book.Chapter;
 import com.stupidpeople.cuentanos.utils.myLog;
 
 import java.util.ArrayList;

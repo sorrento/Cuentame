@@ -1,11 +1,11 @@
-package com.stupidpeople.cuentanos;
+package com.stupidpeople.cuentanos.utils;
 
 import android.content.Context;
 import android.content.SharedPreferences;
 
+import com.stupidpeople.cuentanos.MainActivity;
 import com.stupidpeople.cuentanos.book.Book;
 import com.stupidpeople.cuentanos.book.BookSummary;
-import com.stupidpeople.cuentanos.utils.myLog;
 
 public class Preferences {
     private static final String PREFS_READING_CHAPTER_N      = "last chapter";
@@ -18,7 +18,7 @@ public class Preferences {
 
     private SharedPreferences settings;
 
-    Preferences(MainActivity mainActivity) {
+    public Preferences(MainActivity mainActivity) {
         settings = mainActivity.getPreferences(Context.MODE_PRIVATE);
         //isLocalStorage = settings.getBoolean(PREFS_IS_LOCAL_STORAGE, false);
 

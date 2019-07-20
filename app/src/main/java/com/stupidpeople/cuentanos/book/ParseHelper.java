@@ -8,23 +8,20 @@ import com.parse.ParseObject;
 import com.parse.ParseQuery;
 import com.parse.SaveCallback;
 import com.stupidpeople.cuentanos.Callbacks.BookSumCallback;
-import com.stupidpeople.cuentanos.Chapter;
-import com.stupidpeople.cuentanos.ChapterCB2;
 import com.stupidpeople.cuentanos.Lector.GenericTaskInterface;
-import com.stupidpeople.cuentanos.Preferences;
+import com.stupidpeople.cuentanos.utils.Preferences;
 import com.stupidpeople.cuentanos.utils.myLog;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Random;
 
 /**
  * Created by Milenko on 30/08/2016.
  */
 public class ParseHelper {
     final private static String tag     = "PARSE";
-    public static        String PINBOOK = "pinBook";
+    private static       String PINBOOK = "pinBook";
 
     private static void getRandomAllowedBookId(final ArrayList<Integer> hatedIds, final BookCallIdback cb, Preferences preferences) {
         preferences.setIsLocalStorage(false);
@@ -211,68 +208,7 @@ public class ParseHelper {
 
     /////////// OLD
 
-    /**
-     * Elige (on line) un summary book, o una banda
-     *
-     * @param hatedIds
-     * @param cb
-     */
-    public static void getRandomBookSummaryObsolete(ArrayList<Integer> hatedIds, final BookSumCallback cb) {
-
-        myLog.add("*****Getting random, except the hated: " + hatedIds, "get");
-        ParseQuery<BookSummary> q = ParseQuery.getQuery(BookSummary.class);
-
-        // get number of books
-        q.whereNotEqualTo("isMusic", true);
-        q.whereNotContainedIn("libroId", hatedIds);
-        q.orderByDescending("libroId");
-
-        q.getFirstInBackground(new GetCallback<BookSummary>() {
-            @Override
-            public void done(BookSummary bookSummary, ParseException e) {
-                if (e == null) {
-
-                    final int nBooks = bookSummary.getInt("libroId");
-                    final int iBook  = new Random().nextInt(nBooks + 1);
-
-                    myLog.add("RANDOM: elegido el libro:" + iBook + "/" + nBooks, "get");
-                    getBookSummary(iBook, false, cb);
-
-                } else {
-                    myLog.add("EEROR en getting the maximun book" + e.getLocalizedMessage(), "get" +
-                            "");
-                }
-            }
-        });
-    }
-
-    private static void getChaptersLocalOrWeb(final int iBook, final int iChapter, final int nChapters,
-                                              final FindCallback<Chapter> cb) {
-        // Firstly local
-        getChapters(iBook, iChapter, nChapters, true, new FindCallback<Chapter>() {
-            @Override
-            public void done(List<Chapter> objects, ParseException e) {
-                if (e == null) {
-                    if (objects.size() > 0) {
-                        cb.done(objects, e);
-                    } else {
-                        //Now web
-                        myLog.add("No se ha podido desde local, va mos a web", tag);
-
-                        getChapters(iBook, iChapter, nChapters, false, new FindCallback<Chapter>() {
-                            @Override
-                            public void done(List<Chapter> objects, ParseException e) {
-                                cb.done(objects, e);
-                            }
-                        });
-
-                    }
-                }
-            }
-        });
-    }
-
-    public static void getChapters(final int iBook, int iChapter, int nChapters, boolean local, FindCallback<Chapter> cb) {
+    static void getChapters(final int iBook, int iChapter, int nChapters, boolean local, FindCallback<Chapter> cb) {
         final String fi = "nCapitulo";
 
         ParseQuery<Chapter> q = ParseQuery.getQuery(Chapter.class);
@@ -298,27 +234,8 @@ public class ParseHelper {
         q.findInBackground(forbittenBooks);
     }
 
-    public static void getChapter(int iBook, final int iChapter, final boolean local, final ChapterCB2 chapterCB) {
-
-        ParseQuery<Chapter> q = ParseQuery.getQuery(Chapter.class);
-        q.whereEqualTo("nLibro", iBook);
-        q.whereEqualTo("nCapitulo", iChapter);
-        if (local) q.fromPin(PINBOOK);
-        q.getFirstInBackground(new GetCallback<Chapter>() {
-            @Override
-            public void done(Chapter chapter, ParseException e) {
-                if (e == null) {
-                    chapterCB.onDone(chapter);
-                } else {
-                    chapterCB.onError("Getting chapter " + iChapter + " from local: " + local, e);
-                }
-
-            }
-        });
-    }
-
     private static ArrayList<Integer> getHatedOrFinishedBooksId() {
-        ArrayList<Integer>          arr = new ArrayList();
+        ArrayList<Integer>          arr = new ArrayList<>();
         ParseQuery<BookContability> q   = ParseQuery.getQuery(BookContability.class);
         q.whereEqualTo(BookContability.colIsMusic, false);
         q.whereEqualTo(BookContability.colIsHated, true);

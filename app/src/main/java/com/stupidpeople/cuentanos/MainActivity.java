@@ -22,6 +22,7 @@ import com.stupidpeople.cuentanos.Lector.ReaderEvents;
 import com.stupidpeople.cuentanos.book.Book;
 import com.stupidpeople.cuentanos.ui.ActionsInterface;
 import com.stupidpeople.cuentanos.ui.UiGeneric;
+import com.stupidpeople.cuentanos.utils.Preferences;
 import com.stupidpeople.cuentanos.utils.myLog;
 
 public class MainActivity extends AppCompatActivity {

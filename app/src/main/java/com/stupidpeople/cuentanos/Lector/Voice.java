@@ -4,8 +4,8 @@ import android.content.Context;
 import android.speech.tts.TextToSpeech;
 import android.speech.tts.UtteranceProgressListener;
 
-import com.stupidpeople.cuentanos.Chapter;
 import com.stupidpeople.cuentanos.Speak;
+import com.stupidpeople.cuentanos.book.Chapter;
 import com.stupidpeople.cuentanos.utils.myLog;
 
 public class Voice implements VoiceInterface {

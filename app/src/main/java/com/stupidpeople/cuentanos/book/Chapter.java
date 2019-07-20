@@ -1,7 +1,8 @@
-package com.stupidpeople.cuentanos;
+package com.stupidpeople.cuentanos.book;
 
 import com.parse.ParseClassName;
 import com.parse.ParseObject;
+import com.stupidpeople.cuentanos.Constants;
 import com.stupidpeople.cuentanos.utils.text;
 
 /**
@@ -55,7 +56,7 @@ public class Chapter extends ParseObject {
     public String getText() {
         String texto;
 
-        if (Constantes.debugMode) texto = text.shortenText(getString("texto"), 150);
+        if (Constants.debugMode) texto = text.shortenText(getString("texto"), 150);
         else texto = getString("texto");
 
         return texto;

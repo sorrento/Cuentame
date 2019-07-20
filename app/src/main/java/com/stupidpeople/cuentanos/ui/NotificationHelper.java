@@ -9,11 +9,11 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.support.v7.app.NotificationCompat;
 
-import com.stupidpeople.cuentanos.Chapter;
-import com.stupidpeople.cuentanos.ExceptionManager;
 import com.stupidpeople.cuentanos.MainActivity;
 import com.stupidpeople.cuentanos.R;
 import com.stupidpeople.cuentanos.book.BookSummary;
+import com.stupidpeople.cuentanos.book.Chapter;
+import com.stupidpeople.cuentanos.utils.ExceptionManager;
 import com.stupidpeople.cuentanos.utils.myLog;
 
 public class NotificationHelper implements NotificationInterface {

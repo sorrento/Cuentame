@@ -1,11 +1,11 @@
-package com.stupidpeople.cuentanos;
+package com.stupidpeople.cuentanos.book;
 
 import android.support.annotation.NonNull;
 
 import com.parse.FindCallback;
 import com.parse.ParseException;
 import com.stupidpeople.cuentanos.Lector.GenericTaskInterface;
-import com.stupidpeople.cuentanos.book.ParseHelper;
+import com.stupidpeople.cuentanos.utils.ExceptionManager;
 import com.stupidpeople.cuentanos.utils.myLog;
 
 import java.util.LinkedList;

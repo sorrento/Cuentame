@@ -1,6 +1,6 @@
 package com.stupidpeople.cuentanos.Lector;
 
-import com.stupidpeople.cuentanos.Chapter;
+import com.stupidpeople.cuentanos.book.Chapter;
 
 interface VoiceInterface {
 

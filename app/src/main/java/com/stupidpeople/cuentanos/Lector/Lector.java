@@ -6,10 +6,10 @@ import android.support.v4.content.LocalBroadcastManager;
 
 import com.parse.ParseException;
 import com.stupidpeople.cuentanos.MainActivity;
-import com.stupidpeople.cuentanos.Preferences;
 import com.stupidpeople.cuentanos.book.Book;
 import com.stupidpeople.cuentanos.book.BookCallIdback;
 import com.stupidpeople.cuentanos.book.ParseHelper;
+import com.stupidpeople.cuentanos.utils.Preferences;
 import com.stupidpeople.cuentanos.utils.myLog;
 
 public class Lector implements LectorInterface {

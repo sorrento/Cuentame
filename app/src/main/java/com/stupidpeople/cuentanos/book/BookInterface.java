@@ -1,8 +1,6 @@
 package com.stupidpeople.cuentanos.book;
 
-import com.stupidpeople.cuentanos.Chapter;
 import com.stupidpeople.cuentanos.Lector.GenericTaskInterface;
-import com.stupidpeople.cuentanos.Memoria;
 
 public interface BookInterface {
     Memoria MEMORIA = null;
