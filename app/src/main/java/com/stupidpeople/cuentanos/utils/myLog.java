@@ -106,7 +106,11 @@ public class myLog {
     }
 
     public static void error(String text, Exception e) {
-        add(text + " | " + e.getLocalizedMessage(), "ERROR");
+        if (e == null) {
+            add(text, "ERROR");
+        } else {
+            add(text + " | " + e.getLocalizedMessage(), "ERROR");
+        }
     }
 
     public static void printTTSinfo(TextToSpeech t1) {

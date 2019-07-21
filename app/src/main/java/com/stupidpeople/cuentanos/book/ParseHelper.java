@@ -9,7 +9,6 @@ import com.parse.ParseQuery;
 import com.parse.SaveCallback;
 import com.stupidpeople.cuentanos.Callbacks.BookSumCallback;
 import com.stupidpeople.cuentanos.Lector.GenericTaskInterface;
-import com.stupidpeople.cuentanos.utils.Preferences;
 import com.stupidpeople.cuentanos.utils.myLog;
 
 import java.util.ArrayList;
@@ -23,8 +22,7 @@ public class ParseHelper {
     final private static String tag     = "PARSE";
     private static       String PINBOOK = "pinBook";
 
-    private static void getRandomAllowedBookId(final ArrayList<Integer> hatedIds, final BookCallIdback cb, Preferences preferences) {
-        preferences.setIsLocalStorage(false);
+    private static void getRandomAllowedBookId(final ArrayList<Integer> hatedIds, final BookCallIdback cb) {
 
         myLog.add("*****Getting random, except the hated: " + hatedIds, tag);
         ParseQuery<BookSummary> q = ParseQuery.getQuery(BookSummary.class);
@@ -84,9 +82,9 @@ public class ParseHelper {
      *
      * @param cb
      */
-    public static void getRandomBookIdAllowed(Preferences preferences, BookCallIdback cb) {
+    public static void getRandomBookIdAllowed(BookCallIdback cb) {
         ArrayList<Integer> hated = getHatedOrFinishedBooksId();
-        getRandomAllowedBookId(hated, cb, preferences);
+        getRandomAllowedBookId(hated, cb);
     }
 
     /**
@@ -130,7 +128,7 @@ public class ParseHelper {
                                             }
 
                                             @Override
-                                            public void onError(String text, ParseException e) {
+                                            public void onError(String text, Exception e) {
                                                 task.onError("pinneando chapters desde " + iniChap + " (+ " + chapsPerPart + ")", e);
                                             }
                                         });
@@ -152,7 +150,7 @@ public class ParseHelper {
             }
 
             @Override
-            public void onError(String text, ParseException e) {
+            public void onError(String text, Exception e) {
                 myLog.error(text, e);
             }
         });
@@ -206,15 +204,16 @@ public class ParseHelper {
         return sec.get(0);
     }
 
-    /////////// OLD
-
     static void getChapters(final int iBook, int iChapter, int nChapters, boolean local, FindCallback<Chapter> cb) {
-        final String fi = "nCapitulo";
+        final String fi          = "nCapitulo";
+        int          finalChapId = iChapter + nChapters;
+
+        myLog.add("Pidiendo capitulos desde el " + iChapter + " hasta el " + finalChapId, tag);
 
         ParseQuery<Chapter> q = ParseQuery.getQuery(Chapter.class);
         q.whereEqualTo("nLibro", iBook);
         q.whereGreaterThanOrEqualTo(fi, iChapter);
-        q.whereLessThanOrEqualTo(fi, iChapter + nChapters);
+        q.whereLessThanOrEqualTo(fi, finalChapId);
         q.setLimit(nChapters);
         q.orderByAscending(fi);
         if (local) {
@@ -226,6 +225,8 @@ public class ParseHelper {
         }
         q.findInBackground(cb);
     }
+
+    /////////// OLD
 
     public static void getHatedBookSummaries(FindCallback<BookSummary> forbittenBooks) {
         ParseQuery<BookSummary> q = ParseQuery.getQuery(BookSummary.class);

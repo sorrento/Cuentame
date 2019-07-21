@@ -18,7 +18,6 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.stupidpeople.cuentanos.Lector.Lector;
-import com.stupidpeople.cuentanos.Lector.ReaderEvents;
 import com.stupidpeople.cuentanos.book.Book;
 import com.stupidpeople.cuentanos.ui.ActionsInterface;
 import com.stupidpeople.cuentanos.ui.UiGeneric;
@@ -89,7 +88,7 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void apretadoPlay() {
-                lector.accionLeeLoQueToca();
+                lector.speakCurrentChapter();
             }
         };
 
@@ -97,60 +96,6 @@ public class MainActivity extends AppCompatActivity {
         devUi = new DevUi(myUi);
 
         //UI notificaciones
-        //TODO hacer notificaciones
-
-//        notificacionHelper = new NotificationHelper(myUi,
-//                (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE),
-//                this);
-
-        ReaderEvents readerEvents = new ReaderEvents() {
-
-            public void bookAndVoiceReady() {
-//                devUi.updateBecauseNewBookLoaded();
-//                lector.resumeReadingNewSession();
-            }
-
-            @Override
-            public void voiceStartedSpeakChapter() {
-
-            }
-
-            @Override
-            public void voiceInterrupted() {
-
-            }
-
-            @Override
-            public void voiceEndedReadingChapter() {
-
-            }
-
-        /*    @Override
-            public void onStartedSpeaking(String utteranceId) {
-                myLog.add("on startspeaking", tag);
-                devUi.updateBecauseStarted();
-            }
-
-
-            @Override
-            protected void onStartedSpeakingChapter(int chapterId, boolean isLocalStorage, String texto) {
-                myLog.add("onstartedspeakingchapter", tag);
-                devUi.updateWithNewChapter(chapterId, isLocalStorage, texto);
-//                                  notificacionHelper.updateWithNewChapter(chapterId);
-            }
-
-            @Override
-            protected void onInterruptionOfReading() {
-                myLog.add("onstpedspeaking)", tag);
-                devUi.updateBecauseStopped();
-                //                                notificacionHelper.updateBecauseStopped();
-            }
-
-            @Override
-            public void OnBookChanged() {
-                devUi.updateBecauseNewBookLoaded(lector.getBook());
-            }*/
-        };
 
         lector = new Lector(getApplicationContext(), prefs);
     }
@@ -292,7 +237,7 @@ public class MainActivity extends AppCompatActivity {
                 @Override
                 public void run() {
                     edtChapter.setHint(Integer.toString(book.getCurrentChapterId()));
-                    txtLocal.setText(book.getStorageType());
+                    txtLocal.setText(prefs.getStorageType());
                     txtText.setText(book.getCurrentChapter().getText());
                 }
             });
@@ -326,11 +271,11 @@ public class MainActivity extends AppCompatActivity {
             runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
-                    //txtText.setText(book.getCurrentChapter().getText());
+                    txtText.setText("...Waiting for chapter...");
                     txtDesc.setText(book.getBookSummary().toString());
-                    txtLocal.setText(book.getStorageType());
-                    edtChapter.setHint(Integer.toString(book.getCurrentChapterId()));
-                    edtBook.setHint(Integer.toString(book.getBookId()));
+                    txtLocal.setText(prefs.getStorageType());
+                    edtChapter.setHint(Integer.toString(prefs.getReadingChapterId()));
+                    edtBook.setHint(Integer.toString(prefs.getReadingBookId()));
                 }
             });
         }
@@ -367,7 +312,7 @@ public class MainActivity extends AppCompatActivity {
 
         @Override
         public void apretadoPlay() {
-            lector.accionLeeLoQueToca();
+            lector.speakCurrentChapter();
         }
 
         public void apretadoGo() {

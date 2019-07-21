@@ -6,19 +6,15 @@ DONE
     Se actualiza en interfaz WEB o LOCAL
     NExt debe interrumpir
 NOW:
- que se actuali e el WEB cuando se cambia (por eejemplo en GO)
-    EL Next da problemas, se desfasa la UI con lo que lee
-    no carga el buffer cuando le toca (recargar memoria)
-    ver que en NEXT se actualice toda la interfaz y se guarde en prefs
+
 NEXT
+ media session:
+ https://www.youtube.com/watch?v=FBC1FgWe5X4
     - hacer que funcione la notificación
-    - errores y log por voz
     - que no tenga que poner runUI en cada acción, que "vaya por dentro el poner eso" de la interfaz
- - odiados  no apareece nada
+     - odiados  no apareece nada
 GORDOS
     Diccionario de palabra
-    - test unitarios
-    Con wifi que cargue todo el libro
     que funcione el boton bluetooth
     Usar el media player
     definir en BBDD pronunciaciones especiales
@@ -37,15 +33,11 @@ Detalles
     lectura de mayúscualas?
     cuando ya ha leido todos  avise
     cuando se guarda en local, también se debe guardar el summary
-    los errores los diga por voz
-    que
 
 	- al quitar auricular que se pare
 		http://stackoverflow.com/questions/13610258/how-to-detect-when-a-user-plugs-headset-on-android-device-opposite-of-action-a
 
 Pruebas:
-    - que la memoria funciona bien (que autocarga el buffer)
-
 
 ------------- Diccionario
 API particular:

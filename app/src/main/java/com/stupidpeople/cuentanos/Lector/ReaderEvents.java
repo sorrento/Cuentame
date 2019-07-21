@@ -22,6 +22,8 @@ public abstract class ReaderEvents {
     public abstract void voiceInterrupted();
 
     public abstract void voiceEndedReadingChapter();
+
+    public abstract void error(String text, Exception e);
     //
 
     //    protected abstract void onInterruptionOfReading();
