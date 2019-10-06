@@ -1,6 +1,5 @@
 package com.stupidpeople.cuentanos;
 
-import android.app.Activity;
 import android.app.NotificationManager;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -10,6 +9,7 @@ import android.media.AudioManager;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v4.content.LocalBroadcastManager;
+import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
@@ -23,7 +23,7 @@ import com.stupidpeople.cuentanos.ui.UiGeneric;
 import com.stupidpeople.cuentanos.utils.Preferences;
 import com.stupidpeople.cuentanos.utils.myLog;
 
-public class MainActivity extends Activity {
+public class MainActivity extends AppCompatActivity {
 
     private static final int                       MEDIA_BUTTON_INTENT_EMPIRICAL_PRIORITY_VALUE = 10000;
     //NotificationManager mNotificationManager;

@@ -4,6 +4,7 @@ import android.content.Context;
 import android.speech.tts.TextToSpeech;
 import android.speech.tts.UtteranceProgressListener;
 
+import com.stupidpeople.cuentanos.Constants;
 import com.stupidpeople.cuentanos.Speak;
 import com.stupidpeople.cuentanos.book.Chapter;
 import com.stupidpeople.cuentanos.utils.myLog;
@@ -11,7 +12,6 @@ import com.stupidpeople.cuentanos.utils.text;
 
 public class Voice implements VoiceInterface {
 
-    private static final String       PREFIX_OF_CHAPTER_UTTERANCE = "(chapter)";
     private final        String       mCurrentLanguage;
     private final        Context      mContext;
     private final        ReaderEvents readerEvents;
@@ -146,7 +146,7 @@ public class Voice implements VoiceInterface {
         }
 
         private boolean isUtteranceOfChapter(String utteranceId) {
-            return utteranceId.startsWith(PREFIX_OF_CHAPTER_UTTERANCE);
+            return utteranceId.startsWith(Constants.PREFIX_OF_CHAPTER_UTTERANCE);
         }
 
     }
