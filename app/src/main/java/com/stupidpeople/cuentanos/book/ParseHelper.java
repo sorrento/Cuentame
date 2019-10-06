@@ -258,4 +258,12 @@ public class ParseHelper {
     public static void setBookAsReaded(Book book) {
         BookContability.setFinishedBook(book.getBookSummary());
     }
+
+    public static void Diccionario(ArrayList<String> palabras, FindCallback<palabraDiccionario> err) {
+
+        ParseQuery<palabraDiccionario> q = ParseQuery.getQuery(palabraDiccionario.class);
+        q.whereContainedIn("word", palabras);
+        q.orderByAscending("r");
+        q.findInBackground(err);
+    }
 }

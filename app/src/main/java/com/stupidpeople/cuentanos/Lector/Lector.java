@@ -5,11 +5,15 @@ import android.content.Intent;
 import android.support.v4.content.LocalBroadcastManager;
 
 import com.stupidpeople.cuentanos.MainActivity;
+import com.stupidpeople.cuentanos.book.ArrayCallback;
 import com.stupidpeople.cuentanos.book.Book;
 import com.stupidpeople.cuentanos.book.BookCallIdback;
 import com.stupidpeople.cuentanos.book.ParseHelper;
+import com.stupidpeople.cuentanos.diccionario.Definator;
 import com.stupidpeople.cuentanos.utils.Preferences;
 import com.stupidpeople.cuentanos.utils.myLog;
+
+import java.util.List;
 
 public class Lector {
     private final Preferences           prefs;
@@ -134,24 +138,12 @@ public class Lector {
         });
     }
 
+    public void speakMensaje(String s, Exception e) {
+        voice.speakDeveloperMsg(s);
+        myLog.add(s, tag);
+    }
+
     ////////////////////// OLD
-
-    private void lastChapterEvent() {
-        if (prefs.getStartedFromBeginning()) {
-            voice.predefinedPhrases(TipoFrase.FINALIZADO_LIBRO_ENTERO, true);
-            ParseHelper.setBookAsReaded(book);
-
-            accionCambiaDeLibro();
-        } else {
-            startFromBeginning();
-        }
-    }
-
-    private void startFromBeginning() {
-        voice.predefinedPhrases(TipoFrase.FINALIZADO_LIBRO_REEMPEZAR, true);
-        prefs.setStartedFromBeginning(true);
-    }
-
     public String getStorageType() {
         return prefs.isLocalStorage() ? "LOCAL" : "WEB";
     }
@@ -162,5 +154,23 @@ public class Lector {
 
     public Book getBook() {
         return book;
+    }
+
+    public String getCurrentChapterText() {
+        return book.getCurrentChapter().getText();
+    }
+
+    public void definePalabrasDelChapter() {
+        String text = getCurrentChapterText();
+
+        Definator definator = new Definator(text, "ES", new ArrayCallback() {
+            @Override
+            public void onDone(List<String> arr, List<Double> bestScores) {
+                myLog.add("llegaron definiciones:" + arr, tag);
+                for (String s : arr) {
+                    voice.speakDefinition(s);
+                }
+            }
+        });
     }
 }

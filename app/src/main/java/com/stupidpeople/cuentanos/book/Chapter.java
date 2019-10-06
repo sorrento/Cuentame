@@ -81,8 +81,7 @@ public class Chapter extends ParseObject {
     }
 
     public String getUtterance() {
-        return "(chapter)" + shortDescription();
+        //return "(chapter)" + shortDescription(); esto a veces falla
+        return shortestDescription();
     }
-
-
 }

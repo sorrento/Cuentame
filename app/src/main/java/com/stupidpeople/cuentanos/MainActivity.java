@@ -1,5 +1,7 @@
 package com.stupidpeople.cuentanos;
 
+import android.app.Activity;
+import android.app.NotificationManager;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -8,23 +10,20 @@ import android.media.AudioManager;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v4.content.LocalBroadcastManager;
-import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
-import android.widget.Button;
-import android.widget.EditText;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import com.stupidpeople.cuentanos.Lector.Lector;
-import com.stupidpeople.cuentanos.book.Book;
 import com.stupidpeople.cuentanos.ui.ActionsInterface;
+import com.stupidpeople.cuentanos.ui.UIDev;
+import com.stupidpeople.cuentanos.ui.UINotification;
 import com.stupidpeople.cuentanos.ui.UiGeneric;
 import com.stupidpeople.cuentanos.utils.Preferences;
 import com.stupidpeople.cuentanos.utils.myLog;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends Activity {
 
     private static final int                       MEDIA_BUTTON_INTENT_EMPIRICAL_PRIORITY_VALUE = 10000;
     //NotificationManager mNotificationManager;
@@ -37,8 +36,9 @@ public class MainActivity extends AppCompatActivity {
     private              Preferences               prefs;
     private              Lector                    lector;
     private              String                    tag                                          = "MAI";
-    // private              NotificationHelper        notificacionHelper;
-    private              DevUi                     devUi;
+    Oreja oreja;
+    private UIDev          devUi;
+    private UINotification notificationUI;
 
     @NonNull
     private static IntentFilter getIntentFilterLector() {
@@ -63,8 +63,21 @@ public class MainActivity extends AppCompatActivity {
 
         //getmediaButtons();//Bluetooth
 
+
+
+        /*//////PRUEBA
+        String text = DiccionarioUtils.getSampleChapterText();
+        Definator definator = new Definator(text, "ES", new ArrayCallback() {
+            @Override
+            public void onDone(List<String> arr, List<Double> bestScores) {
+
+            }
+        });
+        //////PRUEBA*/
+
+
         // Eventos
-        Oreja oreja = new Oreja();
+        oreja = new Oreja();
         LocalBroadcastManager.getInstance(this).registerReceiver(oreja, getIntentFilterLector());
 
         ActionsInterface myUi = new ActionsInterface() {
@@ -77,6 +90,7 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void apretadoNextOrHate() {
+                lector.accionStopReading();
                 lector.setLikedCurrentBook(false);
                 lector.accionCambiaDeLibro();
             }
@@ -90,12 +104,37 @@ public class MainActivity extends AppCompatActivity {
             public void apretadoPlay() {
                 lector.speakCurrentChapter();
             }
+
+            @Override
+            public void apretadoDiccionario() {
+                lector.definePalabrasDelChapter();
+            }
+
+            @Override
+            public void apretadoStop() {
+                MainActivity.this.finish();
+            }
+
+            @Override
+            public void apretadoGo(int nBook, int nChap) {
+             /*   int    nChap = Integer.parseInt(edtChapter.getText().toString());
+                int    nBook;
+                String s     = edtBook.getText().toString();
+                nBook = Integer.parseInt(s.equals("") ? edtBook.getHint().toString() : edtBook.getText().toString());
+*/
+                lector.shutUp();
+                lector.accionSaltaACapitulo(nBook, nChap);
+
+            }
         };
 
         //UI dev
-        devUi = new DevUi(myUi);
+        devUi = new UIDev(this, myUi, prefs);
 
         //UI notificaciones
+        notificationUI = new UINotification(myUi,
+                (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE), this);
+
 
         lector = new Lector(getApplicationContext(), prefs);
     }
@@ -121,6 +160,8 @@ public class MainActivity extends AppCompatActivity {
 //        notificacionHelper.unregisterReceiver(this);
 //        this.unregisterReceiver(mMediaButtonReceiver);
         //prefs.setEntireBookMode(prefs.entireBookMode);
+
+        LocalBroadcastManager.getInstance(this).unregisterReceiver(oreja);
         lector.shutdownVoice();
     }
 
@@ -136,25 +177,29 @@ public class MainActivity extends AppCompatActivity {
         if (lector.isReading()) {
             Toast.makeText(this, "Apretado stop", Toast.LENGTH_SHORT).show();
             myLog.add(">>>>>>>>CLICK STOP", tag);
-            devUi.apretadoPause();
+            devUi.apretado(UiGeneric.TipoBoton.PAUSE);
         } else {
             Toast.makeText(this, "Apretado PLAY", Toast.LENGTH_SHORT).show();
             myLog.add(">>>>>>>>>CLICK PLAY", tag);
-            devUi.apretadoPlay();
+            devUi.apretado(UiGeneric.TipoBoton.PLAY);
         }
         ;
     }
 
     public void onClickNext(View view) {
         myLog.add(">>>>>>>>>CLICK NEXT", tag);
-        devUi.apretadoNextOrHate();
+        devUi.apretado(UiGeneric.TipoBoton.NEXT);
     }
 
     public void onClickLike(View view) {
         myLog.add(">>>>>>>>>CLICK LIKE", tag);
-        devUi.apretadoLikeOrBack();
+        devUi.apretado(UiGeneric.TipoBoton.PREV);
     }
 
+    public void onClickDicc(View view) {
+        myLog.add(">>>>>>>>>CLICK DICCIONARIO", tag);
+        devUi.apretado(UiGeneric.TipoBoton.DICCIONARIO);
+    }
 
     /**
      * Del Bluetooth
@@ -209,132 +254,6 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    public class DevUi extends UiGeneric implements ActionsInterface {
-
-        ActionsInterface actionsInterface;
-        private TextView txtText;
-        private TextView txtDesc;
-        private TextView txtLocal;
-        private Button   btnPlayStop;
-        private Button   btnNext;
-        private Button   btnLike;
-        private Button   btnGo;
-        private EditText edtChapter;
-        private EditText edtBook;
-
-
-        public DevUi(ActionsInterface actionsInterface) {
-            super(actionsInterface);
-            //this.actionsInterface = actionsInterface;
-            getUiComponents();
-        }
-
-        @Override
-        public void updateWithNewChapter() {
-            final Book book = lector.getBook();
-            myLog.add("UI updatenewchapter", tag);
-            runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    edtChapter.setHint(Integer.toString(book.getCurrentChapterId()));
-                    txtLocal.setText(prefs.getStorageType());
-                    txtText.setText(book.getCurrentChapter().getText());
-                }
-            });
-        }
-
-        @Override
-        public void updateBecauseStopped() {
-            myLog.add("UI updated because stopped (cambiar el boton)", tag);
-            runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    myLog.add("UI updated because stopped (cambiar el boton). Ahora dentro de RUNUI", tag);
-                    btnPlayStop.setText("PLAY");
-                }
-            });
-        }
-
-        @Override
-        public void updateBecauseStarted() {
-            runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    btnPlayStop.setText("STOP");
-                }
-            });
-        }
-
-        public void updateBecauseNewBookLoaded() {
-            final Book book = lector.getBook();
-
-            runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    txtText.setText("...Waiting for chapter...");
-                    txtDesc.setText(book.getBookSummary().toString());
-                    txtLocal.setText(prefs.getStorageType());
-                    edtChapter.setHint(Integer.toString(prefs.getReadingChapterId()));
-                    edtBook.setHint(Integer.toString(prefs.getReadingBookId()));
-                }
-            });
-        }
-
-        private void getUiComponents() {
-            txtText = (TextView) findViewById(R.id.txtCurrentText);
-            txtDesc = (TextView) findViewById(R.id.txtCurrentDesc);
-            txtLocal = (TextView) findViewById(R.id.txtFromLocal);
-            btnPlayStop = (Button) findViewById(R.id.btn_play_stop);
-            btnNext = (Button) findViewById(R.id.btn_next);
-            btnLike = (Button) findViewById(R.id.btn_like);
-            btnGo = (Button) findViewById(R.id.btn_go);
-            edtChapter = (EditText) findViewById(R.id.etChapter);
-            edtBook = (EditText) findViewById(R.id.etbook);
-        }
-
-        @Override
-        public void apretadoLikeOrBack() {
-            lector.setLikedCurrentBook(true);
-            lector.leeDesdePrincipio();
-        }
-
-        @Override
-        public void apretadoNextOrHate() {
-            lector.accionStopReading(); //todo esto podría estar en la interfaz, doros los apretado next debería hacer lomismo (clase abstract?)
-            lector.setLikedCurrentBook(false);
-            lector.accionCambiaDeLibro();
-        }
-
-        @Override
-        public void apretadoPause() {
-            lector.accionStopReading();
-        }
-
-        @Override
-        public void apretadoPlay() {
-            lector.speakCurrentChapter();
-        }
-
-        public void apretadoGo() {
-            int    nChap = Integer.parseInt(edtChapter.getText().toString());
-            int    nBook;
-            String s     = edtBook.getText().toString();
-            nBook = Integer.parseInt(s.equals("") ? edtBook.getHint().toString() : edtBook.getText().toString());
-
-            lector.shutUp();
-            lector.accionSaltaACapitulo(nBook, nChap);
-        }
-
-        public void updateStorageMode() {
-            runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    txtLocal.setText(lector.getStorageType());
-                }
-            });
-        }
-    }
-
     public class Oreja extends BroadcastReceiver {
         public static final String ACTION_STARTED_READING_CHAPTER = "started_reading_chapter";
         public static final String ACTION_NEW_CHAPTER_LOADED      = "new_chapter_loaded";
@@ -353,24 +272,26 @@ public class MainActivity extends AppCompatActivity {
                     //devUi.updateWithNewChapter();
                     break;
                 case ACTION_STARTED_READING_CHAPTER:
-                    //aa
-                    devUi.updateWithNewChapter();
+                    devUi.updateWithNewChapter(lector.getBook().getCurrentChapter(), lector.getBook());
+                    notificationUI.updateWithNewChapter(lector.getBook().getCurrentChapter(), lector.getBook());
                     devUi.updateBecauseStarted();
+                    notificationUI.updateBecauseStarted();
                     break;
                 case ACTION_OBTIENE_SUMMARY:
-                    devUi.updateBecauseNewBookLoaded();
+                    devUi.updateBecauseNewBookLoaded(lector.getBook().getBookSummary(), lector.getBook());
+                    notificationUI.updateBecauseNewBookLoaded(lector.getBook().getBookSummary(), lector.getBook());
                     break;
                 case ACTION_ENDED_READING_CHAPTER:
-                    //complete
+                    //TODO complete
                     break;
                 case ACTION_STOPPED_READING_CHAP:
                     devUi.updateBecauseStopped();
+                    notificationUI.updateBecauseStopped();
                     break;
                 case ACTION_CHANGE_STORAGE_MODE:
-                    devUi.updateStorageMode();
+                    devUi.updateStorageMode(lector.getStorageType());
                     break;
                 default:
-                    //dd
                     break;
             }
         }

@@ -23,10 +23,16 @@ public abstract class UiGeneric implements NotificationInterface {
             case PREV:
                 actionsInterface.apretadoLikeOrBack();
                 break;
+            case DICCIONARIO:
+                actionsInterface.apretadoDiccionario();
+                break;
+            case STOP:
+                actionsInterface.apretadoStop();
+                break;
         }
     }
 
-    private enum TipoBoton {
-        PLAY, PAUSE, NEXT, PREV
+    public enum TipoBoton {
+        PLAY, PAUSE, NEXT, PREV, DICCIONARIO, STOP
     }
 }

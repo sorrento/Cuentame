@@ -7,22 +7,23 @@ import android.speech.tts.UtteranceProgressListener;
 import com.stupidpeople.cuentanos.Speak;
 import com.stupidpeople.cuentanos.book.Chapter;
 import com.stupidpeople.cuentanos.utils.myLog;
+import com.stupidpeople.cuentanos.utils.text;
 
 public class Voice implements VoiceInterface {
 
-    public static final String       PREFIX_OF_CHAPTER_UTTERANCE = "(chapter)";
-    private final       String       mCurrentLanguage;
-    private final       Context      mContext;
-    private final       ReaderEvents readerEvents;
-    final private       String       samsungEngine               = "com.samsung.SMT";
+    private static final String       PREFIX_OF_CHAPTER_UTTERANCE = "(chapter)";
+    private final        String       mCurrentLanguage;
+    private final        Context      mContext;
+    private final        ReaderEvents readerEvents;
+    final private        String       samsungEngine               = "com.samsung.SMT";
     //private final       VoiceEventInterface   voiceEventInterface;
-    private             TextToSpeech tts;
-    private             boolean      isSpeakingChapter           = false;
-    private             String       tag                         = "VOICE";
-    private             boolean      forzadoACallar              = false;
+    private              TextToSpeech tts;
+    private              boolean      isSpeakingChapter           = false;
+    private              String       tag                         = "VOICE";
+    private              boolean      forzadoACallar              = false;
 
 
-    public Voice(String currentLaguage, Context context, ReaderEvents re) {
+    Voice(String currentLaguage, Context context, ReaderEvents re) {
 
         mCurrentLanguage = currentLaguage;
         mContext = context;
@@ -33,8 +34,6 @@ public class Voice implements VoiceInterface {
 
     /**
      * Primero se inicializa para obtener los posibles motores disponibles
-     *
-     * @return
      */
     private void getBestTTS() {
 
@@ -87,9 +86,13 @@ public class Voice implements VoiceInterface {
         return (tts.isSpeaking() & isSpeakingChapter);
     }
 
-    public void speakDeveloperMsg(String text) {
+    void speakDeveloperMsg(String text) {
         tts.speak("Pipipí, pipipí." + text, TextToSpeech.QUEUE_FLUSH, null,
                 com.stupidpeople.cuentanos.utils.text.shortenText(text, 15));
+    }
+
+    void speakDefinition(String s) {
+        Speak.speak(s, true, "[Definition]" + text.shortenText(s, 100), tts);
     }
 
     class uListener extends UtteranceProgressListener {
@@ -132,8 +135,6 @@ public class Voice implements VoiceInterface {
                     speakDeveloperMsg("Error en el uterance, ver el log");
                     myLog.add("***ERROR en utterance: id = " + utteranceId, tag);
                 }
-
-            } else {
 
             }
         }

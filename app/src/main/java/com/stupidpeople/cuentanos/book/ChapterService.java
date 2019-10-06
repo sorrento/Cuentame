@@ -126,7 +126,17 @@ class ChapterService {
     }
 
     private void reloadBuffer() {
-        reloadBuffer(lastIdInBuffer + 1, true, null);
+        reloadBuffer(lastIdInBuffer + 1, true, new GenericTaskInterface() {
+            @Override
+            public void onDone() {
+                //nada
+            }
+
+            @Override
+            public void onError(String text, Exception e) {
+
+            }
+        });
     }
 
     private void reloadBuffer(final int chapterId, final boolean append, final GenericTaskInterface genericTaskInterface) {

@@ -6,6 +6,36 @@ DONE
     Se actualiza en interfaz WEB o LOCAL
     NExt debe interrumpir
 NOW:
+    Problemas con diccionario
+        - conjucgacionenes no las encuentra
+        - conjugaciones le parecen palabras raras
+
+    Diccionario de palabra
+        - conjugaciones: https://es.bab.la/conjugacion/espanol/conduzco
+
+
+     lo que hay que esperar al empezar al empezar, garbage collector
+     el idioma no lo coge
+BUG:
+    - (8/8)cuando aún no lee el capitulo puedo apretar play; esto hace que lea dos
+    veces el mismo cap 8.45 y 8.47
+        - pone a leer un chapter (a la cola) cuando no ha terminado de leer uno
+        (¿se apretó play cuando ya llevaba tiempo desde on start?
+        START: 45:27
+        speakchapter: 25:36
+        PUEDE QUE EL PROBLEA SEA QUE ENTRÓ EN ONSTARSPEAKING PERO EN REALIDAD NO HABLABA POR ALGÚN MOTIVO
+         el cap 47 termina de hablar en
+         manda A 45.27
+         start A 45.27
+
+         manda B 45.36
+         termina A 47.09
+         start B 47 09
+         termina B 48.51
+
+         dura 1.42
+
+         ATENTO A SI PASA ESTO DE QUE DEBERIA ESTAR HABLANDO (mirar el log si aparece el on start speaking)
 
 NEXT
  media session:
@@ -14,7 +44,6 @@ NEXT
     - que no tenga que poner runUI en cada acción, que "vaya por dentro el poner eso" de la interfaz
      - odiados  no apareece nada
 GORDOS
-    Diccionario de palabra
     que funcione el boton bluetooth
     Usar el media player
     definir en BBDD pronunciaciones especiales
