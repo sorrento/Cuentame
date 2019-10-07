@@ -60,9 +60,11 @@ public class Voice implements VoiceInterface {
 
     @Override
     public void speakChapter(Chapter chapter, boolean interrumpir) {
-        //mObjetoHablado = new ObjetoHablado(chapter);
-        myLog.add("speak chapter: " + chapter.getUtterance(), tag);
-        Speak.speakChapter(chapter, tts);
+        if (chapter != null) {
+            //mObjetoHablado = new ObjetoHablado(chapter);
+            myLog.add("speak chapter: " + chapter.getUtterance(), tag);
+            Speak.speakChapter(chapter, tts);
+        }
     }
 
     @Override
@@ -135,7 +137,6 @@ public class Voice implements VoiceInterface {
                     speakDeveloperMsg("Error en el uterance, ver el log");
                     myLog.add("***ERROR en utterance: id = " + utteranceId, tag);
                 }
-
             }
         }
 
@@ -148,9 +149,7 @@ public class Voice implements VoiceInterface {
         private boolean isUtteranceOfChapter(String utteranceId) {
             return utteranceId.startsWith(Constants.PREFIX_OF_CHAPTER_UTTERANCE);
         }
-
     }
-
     class ObjetoHablado {
         private final TipoFrase mTipofrase;
         private final String    mTexto;
