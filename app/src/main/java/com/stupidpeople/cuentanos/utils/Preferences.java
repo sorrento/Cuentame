@@ -2,10 +2,15 @@ package com.stupidpeople.cuentanos.utils;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.support.annotation.NonNull;
+import android.util.Log;
 
 import com.stupidpeople.cuentanos.MainActivity;
 import com.stupidpeople.cuentanos.book.Book;
 import com.stupidpeople.cuentanos.book.BookSummary;
+
+import java.util.HashSet;
+import java.util.Set;
 
 public class Preferences {
     private static final String PREFS_READING_CHAPTER_N      = "last chapter";
@@ -17,9 +22,11 @@ public class Preferences {
     private static final String PREFS_NCHAPS_PLAYED_IN_WEB   = "n chapters played from web";
     private static final String PREFS_MAX_CHAPTERS           = "max_chapter";
     private static final int    N_READED_WEB                 = 6;
+    public static final  String PREFS_HATED_LIST             = "hated_books";
+    private static final String PREFS_ENDED_LIST             = "ended_books";
 
     private SharedPreferences settings;
-    private String            tag = "PREF";
+    private String            TAG = "PREF";
 
     public Preferences(MainActivity mainActivity) {
         settings = mainActivity.getPreferences(Context.MODE_PRIVATE);
@@ -104,13 +111,13 @@ public class Preferences {
 
     private int nPlayedFromWebGet() {
         int anInt = settings.getInt(PREFS_NCHAPS_PLAYED_IN_WEB, 0);
-        myLog.add("reproducidos en web" + anInt, tag);
+        myLog.add("reproducidos en web" + anInt, TAG);
         return anInt;
     }
 
     public boolean nPlayedFromWebSuperaUmbral() {
         boolean b = nPlayedFromWebGet() > N_READED_WEB;
-        if (b) myLog.add("********superado el umbral de n web", tag);
+        if (b) myLog.add("********superado el umbral de n web", TAG);
         return b;
     }
 
@@ -126,6 +133,68 @@ public class Preferences {
     }
 
     private void setMaxChapters(int maxChapters) {
-        settings.edit().putInt(PREFS_MAX_CHAPTERS, maxChapters);
+        settings.edit().putInt(PREFS_MAX_CHAPTERS, maxChapters).apply();
+    }
+
+    public void addHated(int bookId) {
+
+        String s = String.valueOf(bookId);
+
+        //Retrieve the values
+        Set<String> set = getHated();
+
+        Log.i(TAG, "addHated: hay en la lista de odiados:" + set.size());
+
+        if (set.contains(s)) {
+            myLog.add("Este ya estaba entre los odiados: id=" + bookId, TAG);
+            Log.i(TAG, "addHated: " + "borramos toda la lista y empezamos de nuevo." +
+                    "Recomiendo cargar más libros");
+        } else {
+            set.add(s);
+            settings.edit().putStringSet(PREFS_HATED_LIST, set).apply();
+        }
+    }
+
+    public void addEnded(int bookId) {
+
+        String s = String.valueOf(bookId);
+
+        //Retrieve the values
+        Set<String> set = getEnded();
+
+        Log.i(TAG, "addEnded: hay en la lista de terminados:" + set.size());
+
+        if (set.contains(s)) {
+            myLog.add("Este ya estaba entre los leidos: id=" + bookId, TAG);
+            Log.i(TAG, "addHated: " + "borramos toda la lista y empezamos de nuevo." +
+                    "Recomiendo cargar más libros");
+            resetSkipeables();
+        } else {
+            set.add(s);
+            settings.edit().putStringSet(PREFS_ENDED_LIST, set).apply();
+        }
+    }
+
+    @NonNull
+    public Set<String> getHated() {
+        return settings.getStringSet(PREFS_HATED_LIST, new HashSet<String>());
+    }
+
+    public Set<String> getEnded() {
+        return settings.getStringSet(PREFS_ENDED_LIST, new HashSet<String>());
+    }
+
+    public Set<String> getSkipeables() {
+        Set<String> uno = getHated();
+        Set<String> dos = getEnded();
+
+        uno.addAll(dos);
+        return uno;
+    }
+
+    public void resetSkipeables() {
+        Set<String> set = new HashSet<>();
+        settings.edit().putStringSet(PREFS_ENDED_LIST, set).apply();
+        settings.edit().putStringSet(PREFS_HATED_LIST, set).apply();
     }
 }
