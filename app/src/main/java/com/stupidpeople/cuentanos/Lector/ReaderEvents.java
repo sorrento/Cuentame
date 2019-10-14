@@ -23,6 +23,8 @@ public abstract class ReaderEvents {
 
     public abstract void voiceEndedReadingChapter();
 
+    public abstract void bookEnded();
+
     public abstract void error(String text, Exception e);
     //
 

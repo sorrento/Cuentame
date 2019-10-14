@@ -64,6 +64,13 @@ public class Lector {
             }
 
             @Override
+            public void bookEnded() {
+                voice.predefinedPhrases(TipoFrase.FINALIZADO_LIBRO_ENTERO, true);
+                prefs.addEnded(book.getBookId());
+                accionCambiaDeLibro();
+            }
+
+            @Override
             public void error(String text, Exception e) {
                 speakDeveloper(text);
                 myLog.error(text, e);
@@ -103,7 +110,6 @@ public class Lector {
         book.setCurrentChapterId(1);
     }
 
-
     public void shutUp() {
         voice.shutUp();
     }
@@ -130,7 +136,7 @@ public class Lector {
 
     public void accionCambiaDeLibro() {
         voice.predefinedPhrases(TipoFrase.A_OTRO_LIBRO, true);
-        ParseHelper.getRandomBookIdAllowed(new BookCallIdback() {
+        ParseHelper.getRandomAllowedBookId(prefs.getSkipeables(), new BookCallIdback() {
             @Override
             public void onDone(int bookId) {
                 book = new Book(bookId, -1, false, prefs, readerEvents);
@@ -141,23 +147,6 @@ public class Lector {
     public void speakMensaje(String s, Exception e) {
         voice.speakDeveloperMsg(s);
         myLog.add(s, tag);
-    }
-
-    ////////////////////// OLD
-    public String getStorageType() {
-        return prefs.isLocalStorage() ? "LOCAL" : "WEB";
-    }
-
-    public void setLikedCurrentBook(boolean b) {
-        book.setLiked(b);
-    }
-
-    public Book getBook() {
-        return book;
-    }
-
-    public String getCurrentChapterText() {
-        return book.getCurrentChapter().getText();
     }
 
     public void definePalabrasDelChapter() {
@@ -172,5 +161,25 @@ public class Lector {
                 }
             }
         });
+    }
+
+    ////////////////////// OLD
+
+    public String getStorageType() {
+        return prefs.isLocalStorage() ? "LOCAL" : "WEB";
+    }
+
+    public void setLikedCurrentBook(boolean b) {
+        if (!b) {
+            prefs.addHated(book.getBookId());
+        }
+    }
+
+    public Book getBook() {
+        return book;
+    }
+
+    public String getCurrentChapterText() {
+        return book.getCurrentChapter().getText();
     }
 }

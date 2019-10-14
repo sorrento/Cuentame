@@ -1,5 +1,7 @@
 package com.stupidpeople.cuentanos.book;
 
+import android.util.Log;
+
 import com.parse.DeleteCallback;
 import com.parse.FindCallback;
 import com.parse.GetCallback;
@@ -14,6 +16,8 @@ import com.stupidpeople.cuentanos.utils.myLog;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Random;
+import java.util.Set;
 
 /**
  * Created by Milenko on 30/08/2016.
@@ -22,9 +26,9 @@ public class ParseHelper {
     final private static String tag     = "PARSE";
     private static       String PINBOOK = "pinBook";
 
-    private static void getRandomAllowedBookId(final ArrayList<Integer> hatedIds, final BookCallIdback cb) {
+    public static void getRandomAllowedBookId(final Set<String> forbittenIds, final BookCallIdback cb) {
 
-        myLog.add("*****Getting random, except the hated: " + hatedIds, tag);
+        myLog.add("*****Getting random, except the hated: " + forbittenIds, tag);
         ParseQuery<BookSummary> q = ParseQuery.getQuery(BookSummary.class);
 
         // get number of books
@@ -35,7 +39,7 @@ public class ParseHelper {
             public void done(BookSummary bookSummary, ParseException e) {
                 if (e == null) {
                     final int nBooks = bookSummary.getInt("libroId");
-                    final int iBook  = randomNumber(hatedIds, nBooks);
+                    final int iBook  = randomNumber(forbittenIds, nBooks);
 
                     myLog.add("RANDOM: elegido el libro:" + iBook + "/" + nBooks, "get");
                     cb.onDone(iBook);
@@ -77,15 +81,6 @@ public class ParseHelper {
         getChapters(iBook, iChapter, nChapters, false, cb);
     }
 
-    /**
-     * que no es hated ni terminado de leer
-     *
-     * @param cb
-     */
-    public static void getRandomBookIdAllowed(BookCallIdback cb) {
-        ArrayList<Integer> hated = getHatedOrFinishedBooksId();
-        getRandomAllowedBookId(hated, cb);
-    }
 
     /**
      * Guarda en local el libro completo
@@ -193,15 +188,24 @@ public class ParseHelper {
         });
     }
 
-    private static int randomNumber(ArrayList<Integer> hatedIds, int max) {
-        ArrayList<Integer> sec = new ArrayList<>();
+    private static int randomNumber(Set<String> hatedIds, int max) {
+        ArrayList<String> sec = new ArrayList<>();
+        int               res;
+
         for (int i = 1; i <= max; i++) {
-            sec.add(i);
+            sec.add(String.valueOf(i));
         }
         sec.removeAll(hatedIds);
-        Collections.shuffle(sec);
 
-        return sec.get(0);
+        if (sec.size() != 0) {
+            Collections.shuffle(sec);
+            res = Integer.parseInt(sec.get(0));
+        } else {
+            Log.i(tag, "randomNumber: Ya hemos agotado todos los libros, empezamos de nuevo");
+            res = new Random().nextInt(max);
+        }
+
+        return res;
     }
 
     static void getChapters(final int iBook, int iChapter, int nChapters, boolean local, FindCallback<Chapter> cb) {
@@ -227,14 +231,6 @@ public class ParseHelper {
     }
 
     /////////// OLD
-
-    public static void getHatedBookSummaries(FindCallback<BookSummary> forbittenBooks) {
-        ParseQuery<BookSummary> q = ParseQuery.getQuery(BookSummary.class);
-        q.whereEqualTo("like", false);
-        q.fromPin(PINBOOK);
-        q.findInBackground(forbittenBooks);
-    }
-
     private static ArrayList<Integer> getHatedOrFinishedBooksId() {
         ArrayList<Integer>          arr = new ArrayList<>();
         ParseQuery<BookContability> q   = ParseQuery.getQuery(BookContability.class);
@@ -253,10 +249,6 @@ public class ParseHelper {
             myLog.error("trayendo del local los libros odiados", e);
         }
         return arr;
-    }
-
-    public static void setBookAsReaded(Book book) {
-        BookContability.setFinishedBook(book.getBookSummary());
     }
 
     public static void Diccionario(ArrayList<String> palabras, FindCallback<palabraDiccionario> err) {
