@@ -16,7 +16,6 @@ public class UIDev extends UiGeneric {
 
     private final Preferences      prefs;
     private       MainActivity     mainActivity;
-    private       ActionsInterface actionsInterface;
     private       TextView         txtText;
     private       TextView         txtDesc;
     private       TextView         txtLocal;

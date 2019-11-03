@@ -59,6 +59,17 @@ public class Speak {
 
     public static void speak(String s, boolean interrupting, String utterance, TextToSpeech t1) {
 
+        // Parche por si el chapter es muy largo
+        int endIndex = TextToSpeech.getMaxSpeechInputLength() - 10;
+        if (s.length() > endIndex) {
+            String s1 = s.substring(0, endIndex);
+            String s2 = s.substring(endIndex + 1);
+            speak(s1, false, "cortado 1", t1);
+            speak(s2, false, Constants.PREFIX_OF_CHAPTER_UTTERANCE +
+                    "cortado 2", t1);
+            return;
+        }
+
         int queueMode = interrupting ? TextToSpeech.QUEUE_FLUSH : TextToSpeech.QUEUE_ADD;
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
@@ -70,7 +81,7 @@ public class Speak {
         }
     }
 
-    public static String generaBienvenida(String lan) {
+    private static String generaBienvenida(String lan) {
         String welcome = "Hola, te voy a contar algunas de las historias que más me gustan. Espero que a ti también." +
                 " Si no te gusta como suena mi voz, instala un sintetizador nuevo. Busca en el google play poniendo TTS." +
                 " Vamos a ver...";
