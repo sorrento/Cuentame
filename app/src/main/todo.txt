@@ -33,6 +33,7 @@ GORDOS
     por ahora el main es una actividad, esto lo podemos cambiar?
 
 Detalles
+    volver a poner lyrics o chistes entre medio
     frases customizables desde BBDD
     Lectura con pauseas al final de líneas
     al apagar bluetooth que ponga pausa

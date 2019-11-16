@@ -35,6 +35,11 @@ public class Speak {
             msg.add("Atento que ahora viene la parte crucial...");
             msg.add("Te eché de menos. Pero te estaba esperando...");
             msg.add("Te está enganchando, verdad? Espera a oir lo que viene...");
+        } else {
+            msg.add("Let's see honey, what was all about... ");
+            msg.add("I think this was the last part...");
+            msg.add("What was the last thing I told you? ah, I remember...");
+
         }
 
         return msg.get(new Random().nextInt(msg.size()));
@@ -52,6 +57,10 @@ public class Speak {
             msg.add("En algún lugar de la mancha, de cuyo nombre no quiero acordarme...");
             msg.add("¡Eso! Se empieza desde el principio");
             msg.add("Ahora te cuento lo que te has perdido.");
+        } else {
+            msg.add("I can see you enjoy the story, let's start from the beginning");
+            msg.add("Let's start from the beginning");
+            msg.add("Once upon the time...");
         }
 
         return msg.get(new Random().nextInt(msg.size()));
@@ -102,6 +111,10 @@ public class Speak {
             msg.add("No culpe al libro, eres tú el que se distrae...");
             msg.add("Mira, el próximo es güeno, güeno...");
             msg.add("A tomar por saco, veamos otro");
+        } else {
+            msg.add("Damn it, you hated it. Let's try a different thing.");
+            msg.add("Wow, are you NOT giving another chance?");
+            msg.add("I known. It wasn't good. But I had to try");
         }
 
         return msg.get(new Random().nextInt(msg.size()));
