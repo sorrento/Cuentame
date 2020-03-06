@@ -24,6 +24,7 @@ public class Preferences {
     private static final int    N_READED_WEB                 = 6;
     public static final  String PREFS_HATED_LIST             = "hated_books";
     private static final String PREFS_ENDED_LIST             = "ended_books";
+    private static final String PREFS_N_DISPONIBLES          = "libros por leer";
 
     private SharedPreferences settings;
     private String            TAG = "PREF";
@@ -196,5 +197,13 @@ public class Preferences {
         Set<String> set = new HashSet<>();
         settings.edit().putStringSet(PREFS_ENDED_LIST, set).apply();
         settings.edit().putStringSet(PREFS_HATED_LIST, set).apply();
+    }
+
+    public int getDisponibles() {
+        return (settings.getInt(PREFS_N_DISPONIBLES, 9999));
+    }
+
+    public void setDisponibles(int nDisponibles) {
+        settings.edit().putInt(PREFS_N_DISPONIBLES, nDisponibles).apply();
     }
 }

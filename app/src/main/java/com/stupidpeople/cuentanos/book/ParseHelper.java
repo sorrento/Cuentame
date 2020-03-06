@@ -41,8 +41,10 @@ public class ParseHelper {
                     final int nBooks = bookSummary.getInt("libroId");
                     final int iBook  = randomNumber(forbittenIds, nBooks);
 
+                    int nDisponibles = nBooks - forbittenIds.size();
+
                     myLog.add("RANDOM: elegido el libro:" + iBook + "/" + nBooks, "get");
-                    cb.onDone(iBook);
+                    cb.onDone(iBook, nDisponibles);
                 } else {
                     myLog.add("EEROR en getting the maximun book" + e.getLocalizedMessage(), tag);
                 }

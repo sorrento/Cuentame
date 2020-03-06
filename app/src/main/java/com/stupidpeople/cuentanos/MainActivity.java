@@ -278,8 +278,10 @@ public class MainActivity extends AppCompatActivity {
                     notificationUI.updateBecauseStarted();
                     break;
                 case ACTION_OBTIENE_SUMMARY:
-                    devUi.updateBecauseNewBookLoaded(lector.getBook().getBookSummary(), lector.getBook());
-                    notificationUI.updateBecauseNewBookLoaded(lector.getBook().getBookSummary(), lector.getBook());
+                    devUi.updateBecauseNewBookLoaded(lector.getBook().getBookSummary(), lector.getBook(),
+                            prefs.getDisponibles());
+                    notificationUI.updateBecauseNewBookLoaded(lector.getBook().getBookSummary(),
+                            lector.getBook(), prefs.getDisponibles());
                     break;
                 case ACTION_ENDED_READING_CHAPTER:
                     //TODO complete

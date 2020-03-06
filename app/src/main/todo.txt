@@ -19,7 +19,7 @@ BUG:
 
 NEXT
  media session:
- https://www.youtube.com/watch?v=FBC1FgWe5X4
+    https://www.youtube.com/watch?v=FBC1FgWe5X4
     - que no tenga que poner runUI en cada acción, que "vaya por dentro el poner eso" de la interfaz
      - odiados  no apareece nada
 GORDOS

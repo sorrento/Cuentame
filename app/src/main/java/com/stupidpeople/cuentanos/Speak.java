@@ -73,7 +73,7 @@ public class Speak {
         if (s.length() > endIndex) {
             String s1 = s.substring(0, endIndex);
             String s2 = s.substring(endIndex + 1);
-            speak(s1, false, "cortado 1", t1);
+            speak(s1, false, Constants.PREFIX_OF_CHAPTER_UTTERANCE + "cortado 1", t1);
             speak(s2, false, Constants.PREFIX_OF_CHAPTER_UTTERANCE +
                     "cortado 2", t1);
             return;

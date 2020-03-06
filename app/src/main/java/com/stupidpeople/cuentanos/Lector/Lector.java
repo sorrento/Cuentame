@@ -138,7 +138,8 @@ public class Lector {
         voice.predefinedPhrases(TipoFrase.A_OTRO_LIBRO, true);
         ParseHelper.getRandomAllowedBookId(prefs.getSkipeables(), new BookCallIdback() {
             @Override
-            public void onDone(int bookId) {
+            public void onDone(int bookId, int nDisponibles) {
+                prefs.setDisponibles(nDisponibles);
                 book = new Book(bookId, -1, false, prefs, readerEvents);
             }
         });

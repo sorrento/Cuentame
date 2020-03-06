@@ -71,7 +71,7 @@ public class UIDev extends UiGeneric {
         });
     }
 
-    public void updateBecauseNewBookLoaded(BookSummary bookSummary, final Book book) {
+    public void updateBecauseNewBookLoaded(BookSummary bookSummary, final Book book, int nBooksAvailable) {
 
         mainActivity.runOnUiThread(new Runnable() {
             @Override
