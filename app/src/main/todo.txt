@@ -1,8 +1,10 @@
-COMPROBADO
 
-DONE
-    Se actualiza en interfaz WEB o LOCAL
-    NExt debe interrumpir
+----------------mensajes de cortesia
+    ok- en go
+    - en next
+    - al terminar dice que no te gusta
+    - al ir al principio dice "como iba esto"
+----------------
 NOW:
     Problemas con diccionario
         - conjucgacionenes no las encuentra

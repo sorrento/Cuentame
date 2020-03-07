@@ -2,11 +2,11 @@ package com.stupidpeople.cuentanos.Lector;
 
 public enum TipoFrase {
     WELCOME,
-    RETOMEMOS,
-    A_OTRO_LIBRO,
+    DONDE_ME_QUEDE_RETOMAR,
+    NO_TE_GUSTA_VEAMOS_OTRO,
     FINALIZADO_LIBRO_ENTERO,
     FINALIZADO_LIBRO_REEMPEZAR,
-    IR_A_PRINCIPIO,
+    TE_GUSTA_VAMOS_PRINCIPIO,
     VAMOS_ALLA,
     CHAPTER
 }

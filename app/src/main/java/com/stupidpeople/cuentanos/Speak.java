@@ -45,7 +45,7 @@ public class Speak {
         return msg.get(new Random().nextInt(msg.size()));
     }
 
-    static String generaMsgTeGusta(@NonNull String lan) {
+    static String generaMsgTeGustaVamosAlPrincipio(@NonNull String lan) {
 
         final ArrayList<String> msg = new ArrayList<>();
 
@@ -98,7 +98,7 @@ public class Speak {
         return welcome;
     }
 
-    static String generaMsgNoTeGusta(@NonNull String lan) {
+    static String generaMsgNoTeGustaVeamosOtro(@NonNull String lan) {
         final ArrayList<String> msg = new ArrayList<>();
 
         if (lan.equals("ES")) {
@@ -167,14 +167,14 @@ public class Speak {
             case WELCOME:
                 txt = generaBienvenida(lan);
                 break;
-            case RETOMEMOS:
+            case DONDE_ME_QUEDE_RETOMAR:
                 txt = generaMsgDondeMeQuede(lan);
                 break;
-            case A_OTRO_LIBRO:
-                txt = generaMsgNoTeGusta(lan);
+            case NO_TE_GUSTA_VEAMOS_OTRO:
+                txt = generaMsgNoTeGustaVeamosOtro(lan);
                 break;
-            case IR_A_PRINCIPIO:
-                txt = generaMsgTeGusta(lan);
+            case TE_GUSTA_VAMOS_PRINCIPIO:
+                txt = generaMsgTeGustaVamosAlPrincipio(lan);
                 break;
             case VAMOS_ALLA:
                 txt = "vamos allá";

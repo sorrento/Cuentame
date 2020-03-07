@@ -92,7 +92,7 @@ public class MainActivity extends AppCompatActivity {
             public void apretadoNextOrHate() {
                 lector.accionStopReading();
                 lector.setLikedCurrentBook(false);
-                lector.accionCambiaDeLibro();
+                lector.accionCambiaDeLibro(true);
             }
 
             @Override

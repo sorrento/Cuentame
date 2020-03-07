@@ -43,7 +43,11 @@ public class Lector {
                 }
 
                 localBroadcastManager.sendBroadcast(new Intent(MainActivity.Oreja.ACTION_OBTIENE_SUMMARY));
-                voice.predefinedPhrases(TipoFrase.RETOMEMOS, true);
+
+                // si es retomar el libro
+                if (book.getCurrentChapterId() != 1)
+                    voice.predefinedPhrases(TipoFrase.DONDE_ME_QUEDE_RETOMAR, true);
+
                 speakCurrentChapter();
             }
 
@@ -67,7 +71,7 @@ public class Lector {
             public void bookEnded() {
                 voice.predefinedPhrases(TipoFrase.FINALIZADO_LIBRO_ENTERO, true);
                 prefs.addEnded(book.getBookId());
-                accionCambiaDeLibro();
+                accionCambiaDeLibro(false);
             }
 
             @Override
@@ -105,7 +109,7 @@ public class Lector {
 
     public void leeDesdePrincipio() {
         voice.shutUp();
-        voice.predefinedPhrases(TipoFrase.IR_A_PRINCIPIO, true);
+        voice.predefinedPhrases(TipoFrase.TE_GUSTA_VAMOS_PRINCIPIO, true);
 
         book.setCurrentChapterId(1);
     }
@@ -134,8 +138,8 @@ public class Lector {
         }
     }
 
-    public void accionCambiaDeLibro() {
-        voice.predefinedPhrases(TipoFrase.A_OTRO_LIBRO, true);
+    public void accionCambiaDeLibro(boolean prematuro) {
+        if (prematuro) voice.predefinedPhrases(TipoFrase.NO_TE_GUSTA_VEAMOS_OTRO, true);
         ParseHelper.getRandomAllowedBookId(prefs.getSkipeables(), new BookCallIdback() {
             @Override
             public void onDone(int bookId, int nDisponibles) {
