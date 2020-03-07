@@ -2,5 +2,5 @@ package com.stupidpeople.cuentanos.book;
 
 public interface BookCallIdback {
 
-    void onDone(int bookId);
+    void onDone(int bookId, int nDisponibles);
 }

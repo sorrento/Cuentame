@@ -33,7 +33,7 @@ public class Book {
 
                     @Override
                     public void bookEnded() {
-                        //TODO cuando termina el libro
+                        re.bookEnded();
                     }
 
                     @Override
@@ -57,16 +57,13 @@ public class Book {
     public Chapter getCurrentChapter() {
         return chapterService.giveMeSame();
     }
-    //OLD
-
-    public void setLiked(boolean b) {
-        // todo ponerlo en la contabilidad local
-    }
 
     public String getBookName() {
         return bookSummary.getTitle();
     }
 
+
+    //OLD
     public String getBookNameFake() {
         return bookSummary.fakeTitle();
     }
@@ -100,6 +97,7 @@ public class Book {
     }
 
     public int getBookId() {
-        return chapterService.getCurrentChapterId();
+        //return chapterService.getCurrentChapterId();
+        return bookSummary.getId();
     }
 }

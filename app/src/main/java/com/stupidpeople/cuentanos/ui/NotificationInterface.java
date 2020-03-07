@@ -12,5 +12,5 @@ public interface NotificationInterface {
 
     void updateBecauseStarted();
 
-    void updateBecauseNewBookLoaded(BookSummary bookSummary, Book book1);
+    void updateBecauseNewBookLoaded(BookSummary bookSummary, Book book1, int nBookAvailable);
 }

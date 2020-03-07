@@ -16,7 +16,6 @@ public class UIDev extends UiGeneric {
 
     private final Preferences      prefs;
     private       MainActivity     mainActivity;
-    private       ActionsInterface actionsInterface;
     private       TextView         txtText;
     private       TextView         txtDesc;
     private       TextView         txtLocal;
@@ -72,7 +71,7 @@ public class UIDev extends UiGeneric {
         });
     }
 
-    public void updateBecauseNewBookLoaded(BookSummary bookSummary, final Book book) {
+    public void updateBecauseNewBookLoaded(BookSummary bookSummary, final Book book, int nBooksAvailable) {
 
         mainActivity.runOnUiThread(new Runnable() {
             @Override

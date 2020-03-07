@@ -35,6 +35,11 @@ public class Speak {
             msg.add("Atento que ahora viene la parte crucial...");
             msg.add("Te eché de menos. Pero te estaba esperando...");
             msg.add("Te está enganchando, verdad? Espera a oir lo que viene...");
+        } else {
+            msg.add("Let's see honey, what was all about... ");
+            msg.add("I think this was the last part...");
+            msg.add("What was the last thing I told you? ah, I remember...");
+
         }
 
         return msg.get(new Random().nextInt(msg.size()));
@@ -52,12 +57,27 @@ public class Speak {
             msg.add("En algún lugar de la mancha, de cuyo nombre no quiero acordarme...");
             msg.add("¡Eso! Se empieza desde el principio");
             msg.add("Ahora te cuento lo que te has perdido.");
+        } else {
+            msg.add("I can see you enjoy the story, let's start from the beginning");
+            msg.add("Let's start from the beginning");
+            msg.add("Once upon the time...");
         }
 
         return msg.get(new Random().nextInt(msg.size()));
     }
 
     public static void speak(String s, boolean interrupting, String utterance, TextToSpeech t1) {
+
+        // Parche por si el chapter es muy largo
+        int endIndex = TextToSpeech.getMaxSpeechInputLength() - 10;
+        if (s.length() > endIndex) {
+            String s1 = s.substring(0, endIndex);
+            String s2 = s.substring(endIndex + 1);
+            speak(s1, false, Constants.PREFIX_OF_CHAPTER_UTTERANCE + "cortado 1", t1);
+            speak(s2, false, Constants.PREFIX_OF_CHAPTER_UTTERANCE +
+                    "cortado 2", t1);
+            return;
+        }
 
         int queueMode = interrupting ? TextToSpeech.QUEUE_FLUSH : TextToSpeech.QUEUE_ADD;
 
@@ -70,7 +90,7 @@ public class Speak {
         }
     }
 
-    public static String generaBienvenida(String lan) {
+    private static String generaBienvenida(String lan) {
         String welcome = "Hola, te voy a contar algunas de las historias que más me gustan. Espero que a ti también." +
                 " Si no te gusta como suena mi voz, instala un sintetizador nuevo. Busca en el google play poniendo TTS." +
                 " Vamos a ver...";
@@ -91,6 +111,10 @@ public class Speak {
             msg.add("No culpe al libro, eres tú el que se distrae...");
             msg.add("Mira, el próximo es güeno, güeno...");
             msg.add("A tomar por saco, veamos otro");
+        } else {
+            msg.add("Damn it, you hated it. Let's try a different thing.");
+            msg.add("Wow, are you NOT giving another chance?");
+            msg.add("I known. It wasn't good. But I had to try");
         }
 
         return msg.get(new Random().nextInt(msg.size()));

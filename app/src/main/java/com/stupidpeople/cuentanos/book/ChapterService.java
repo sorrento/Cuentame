@@ -56,7 +56,10 @@ class ChapterService {
 
     Chapter giveMeNext() {
         removeOne();
-        if (chapterId == maxChapters) mCsEvents.bookEnded();
+        if (chapterId == maxChapters) {
+            mCsEvents.bookEnded();
+            return null;
+        }
         chapterId += 1;
         preferences.setReadingChapterId(chapterId);
 

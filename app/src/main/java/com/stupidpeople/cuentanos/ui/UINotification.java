@@ -27,14 +27,15 @@ public class UINotification extends UiGeneric {
     private final        Context                    context;
     private final        NotificationManager        notificationManager;
     private final        EventsReceiver             eventsReceiver;
-    private              PendingIntent              likePendingIntent;
-    private              PendingIntent              playPausePendingIntent;
-    private              PendingIntent              nextPendingIntent;
-    private              PendingIntent              stopPendingIntent;
-    private              NotificationCompat.Builder builder;
-    private              BookSummary                currentBook;
-    private              boolean                    isPlaying;
-    private              Chapter                    currentChapter;
+    private PendingIntent              likePendingIntent;
+    private PendingIntent              playPausePendingIntent;
+    private PendingIntent              nextPendingIntent;
+    private PendingIntent              stopPendingIntent;
+    private NotificationCompat.Builder builder;
+    private BookSummary                currentBook;
+    private boolean                    isPlaying;
+    private Chapter                    currentChapter;
+    private int                        mnBookAvailable;
 
     public UINotification(ActionsInterface actionsInterface, NotificationManager notificationManager,
                           Context context) {
@@ -84,14 +85,15 @@ public class UINotification extends UiGeneric {
     private void refreshNotification() {
         builder = createBuilder(currentBook);
         Notification notification = builder.setSubText(currentChapter.getChapterId() + "/" +
-                currentBook.getNChapters()).build();
+                currentBook.getNChapters() + " <" + mnBookAvailable + ">").build();
         notificationManager.notify(1, notification);
     }
 
     @Override
-    public void updateBecauseNewBookLoaded(BookSummary bookSummary, Book book1) {
+    public void updateBecauseNewBookLoaded(BookSummary bookSummary, Book book1, int nBooksAvailable) {
         currentBook = bookSummary;
         builder = createBuilder(bookSummary);
+        mnBookAvailable = nBooksAvailable;
     }
 
     private NotificationCompat.Builder createBuilder(BookSummary bookSummary) {
