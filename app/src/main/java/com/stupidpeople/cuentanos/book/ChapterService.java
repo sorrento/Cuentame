@@ -95,7 +95,11 @@ class ChapterService {
     }
 
     private void forceRandomChapter() {
-        chapterId = (new Random().nextInt(maxChapters - 10)) + 1;
+        if (maxChapters < 11) {
+            chapterId = 1;
+        } else {
+            chapterId = (new Random().nextInt(maxChapters - 10)) + 1;
+        }
         forceChapterId(chapterId);
     }
 
@@ -175,5 +179,12 @@ class ChapterService {
 
     int getCurrentChapterId() {
         return chapterId;
+    }
+
+    void getChapters(int chapterIdIni, int chapterIdFin, FindCallback<Chapter> cb) {
+
+        int nChapters = chapterIdFin - chapterIdIni;
+
+        ParseHelper.getChapters(bookId, chapterIdIni, nChapters, isLocalStorage, cb);
     }
 }

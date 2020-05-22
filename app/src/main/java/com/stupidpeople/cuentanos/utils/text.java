@@ -8,6 +8,12 @@ import android.net.NetworkInfo;
  * Created by halatm on 08/09/2016.
  */
 public class text {
+
+    public static String leftpad(String relleno, String str) {
+//        String relleno = "0000000000000000";
+        return (relleno.substring(str.length()) + str);
+    }
+
     public static String shortenText(String s, int n) {
         return s.length() < n ? s : s.substring(0, n);
     }

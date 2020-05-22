@@ -17,6 +17,9 @@ NOW:
      lo que hay que esperar al empezar al empezar, garbage collector
      el idioma no lo coge
 BUG:
+    Que se puedan leer los mensajes de voz tipo dpipipi desde cualquier punto del código (lanzando eventos de código?)
+
+
 
 
 NEXT

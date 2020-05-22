@@ -1,5 +1,6 @@
 package com.stupidpeople.cuentanos.book;
 
+import com.parse.FindCallback;
 import com.parse.ParseException;
 import com.stupidpeople.cuentanos.Callbacks.BookSumCallback;
 import com.stupidpeople.cuentanos.Lector.ReaderEvents;
@@ -99,5 +100,9 @@ public class Book {
     public int getBookId() {
         //return chapterService.getCurrentChapterId();
         return bookSummary.getId();
+    }
+
+    public void getChapters(int chapterIdIni, int chapterIdFin, FindCallback<Chapter> cb) {
+        chapterService.getChapters(chapterIdIni, chapterIdFin, cb);
     }
 }

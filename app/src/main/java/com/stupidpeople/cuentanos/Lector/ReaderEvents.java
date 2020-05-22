@@ -25,6 +25,10 @@ public abstract class ReaderEvents {
 
     public abstract void bookEnded();
 
+    public abstract void txt2fileBunchProcessed();
+
+    public abstract void txt2fileOneFileWritten(int i);
+
     public abstract void error(String text, Exception e);
     //
 

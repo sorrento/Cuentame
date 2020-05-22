@@ -1,5 +1,7 @@
 package com.stupidpeople.cuentanos.book;
 
+import android.speech.tts.TextToSpeech;
+
 import com.parse.ParseClassName;
 import com.parse.ParseObject;
 import com.stupidpeople.cuentanos.Constants;
@@ -82,5 +84,20 @@ public class Chapter extends ParseObject {
 
     public String getUtterance() {
         return Constants.PREFIX_OF_CHAPTER_UTTERANCE + shortDescription();
+    }
+
+    /**
+     * Corta el texto al máximo que acepta el reproductor de tts
+     *
+     * @return
+     */
+    public String getTextTrimmed() {
+        String s = getText();
+        String s1;
+
+        int endIndex = TextToSpeech.getMaxSpeechInputLength() - 10;
+
+        s1 = s.length() > endIndex ? s.substring(0, endIndex) : s;
+        return s1;
     }
 }

@@ -133,6 +133,28 @@ public class UINotification extends UiGeneric {
         return b;
     }
 
+    public void showmp3status(int i, int total) {
+        BookSummary bookSummary = currentBook;
+
+        String msg = "Procesado mp3 " + i + "/" + total;
+
+        Notification notification = new NotificationCompat.Builder(context, CHANNEL_ID)
+                // Show controls on lock screen even when user hides sensitive content.
+                .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
+                .setSmallIcon(R.drawable.ic_logo_white)
+                .setStyle(new android.support.v4.media.app.NotificationCompat.MediaStyle())
+                .setShowWhen(false)
+                .setContentTitle(bookSummary.fakeTitle())
+                .setContentText(bookSummary.getFakeAuthor())
+                .setSubText(msg)
+                .setLargeIcon(bookSummary.getImageBitmap())
+                .setTicker(msg)
+                .build();
+
+        notificationManager.notify(1, notification);
+
+    }
+
     /**
      * Para coger de la notificación
      */

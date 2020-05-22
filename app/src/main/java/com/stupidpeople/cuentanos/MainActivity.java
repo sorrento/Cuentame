@@ -8,6 +8,7 @@ import android.content.IntentFilter;
 import android.media.AudioManager;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
+import android.support.v4.content.ContextCompat;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
@@ -22,6 +23,11 @@ import com.stupidpeople.cuentanos.ui.UINotification;
 import com.stupidpeople.cuentanos.ui.UiGeneric;
 import com.stupidpeople.cuentanos.utils.Preferences;
 import com.stupidpeople.cuentanos.utils.myLog;
+
+import java.io.File;
+
+import cafe.adriel.androidaudioconverter.AndroidAudioConverter;
+import cafe.adriel.androidaudioconverter.callback.ILoadCallback;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -48,6 +54,7 @@ public class MainActivity extends AppCompatActivity {
         intentFilter.addAction(Oreja.ACTION_NEW_CHAPTER_LOADED);
         intentFilter.addAction(Oreja.ACTION_STOPPED_READING_CHAP);
         intentFilter.addAction(Oreja.ACTION_CHANGE_STORAGE_MODE);
+        intentFilter.addAction(Oreja.ACTION_MP3FILEWRITTEN);
 
         return intentFilter;
     }
@@ -62,8 +69,6 @@ public class MainActivity extends AppCompatActivity {
         LocalBroadcastManager localBroadcastManager = LocalBroadcastManager.getInstance(this);
 
         //getmediaButtons();//Bluetooth
-
-
 
         /*//////PRUEBA
         String text = DiccionarioUtils.getSampleChapterText();
@@ -201,6 +206,29 @@ public class MainActivity extends AppCompatActivity {
         devUi.apretado(UiGeneric.TipoBoton.DICCIONARIO);
     }
 
+    public void onClickWav(View view) {
+        //Converter wav mp3
+        AndroidAudioConverter.load(this, new ILoadCallback() {
+            @Override
+            public void onSuccess() {
+                Toast.makeText(MainActivity.this, "cargado el converter", Toast.LENGTH_SHORT).show();
+
+                File[] Dirs = ContextCompat.getExternalFilesDirs(MainActivity.this, null);
+                String path = Dirs[1].getAbsolutePath();
+
+                lector.createMp3sLibroEntero(path);
+                // lector.createMp3s(10, 13, path);
+            }
+
+            @Override
+            public void onFailure(Exception error) {
+                Toast.makeText(MainActivity.this, "// FFmpeg is not supported by device", Toast.LENGTH_SHORT).show();
+            }
+        });
+
+
+    }
+
     /**
      * Del Bluetooth
      */
@@ -261,6 +289,7 @@ public class MainActivity extends AppCompatActivity {
         public static final String ACTION_OBTIENE_SUMMARY         = "obtiene_summary";
         public static final String ACTION_STOPPED_READING_CHAP    = "stopped_reading";
         public static final String ACTION_CHANGE_STORAGE_MODE     = "change_sotrage_mode";
+        public static final String ACTION_MP3FILEWRITTEN          = "mp3_file_written";
 
         @Override
         public void onReceive(Context context, Intent intent) {
@@ -292,6 +321,11 @@ public class MainActivity extends AppCompatActivity {
                     break;
                 case ACTION_CHANGE_STORAGE_MODE:
                     devUi.updateStorageMode(lector.getStorageType());
+                    break;
+                case ACTION_MP3FILEWRITTEN:
+                    int i = intent.getIntExtra("chapter", 1);
+                    int total = intent.getIntExtra("total", 1000);
+                    notificationUI.showmp3status(i, total);
                     break;
                 default:
                     break;

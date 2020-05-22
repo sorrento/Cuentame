@@ -71,6 +71,7 @@ public class Speak {
         // Parche por si el chapter es muy largo
         int endIndex = TextToSpeech.getMaxSpeechInputLength() - 10;
         if (s.length() > endIndex) {
+            myLog.add("El texto es demasiado largo: " + s.length() + " > " + endIndex, tag);
             String s1 = s.substring(0, endIndex);
             String s2 = s.substring(endIndex + 1);
             speak(s1, false, Constants.PREFIX_OF_CHAPTER_UTTERANCE + "cortado 1", t1);
