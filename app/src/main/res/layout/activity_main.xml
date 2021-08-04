@@ -12,24 +12,29 @@
 
         <Button
             android:id="@+id/btn_play_stop"
-            android:layout_width="100dp"
+            android:layout_width="80dp"
             android:layout_height="wrap_content"
             android:onClick="onClickPlayStop"
             android:text="play" />
 
         <Button
-            android:id="@+id/btn_next"
-            android:layout_width="100dp"
+            android:layout_width="80dp"
             android:layout_height="wrap_content"
             android:onClick="onClickNext"
             android:text="next" />
 
         <Button
-            android:id="@+id/btn_like"
-            android:layout_width="100dp"
+            android:layout_width="80dp"
             android:layout_height="wrap_content"
             android:onClick="onClickLike"
             android:text="like" />
+
+        <Button
+            android:layout_width="80dp"
+            android:layout_height="wrap_content"
+            android:onClick="onClickDicc"
+            android:text="Dicc" />
+
     </LinearLayout>
 
     <LinearLayout
@@ -54,11 +59,17 @@
             android:inputType="number" />
 
         <Button
-            android:id="@+id/btn_go"
-            android:layout_width="100dp"
+            android:layout_width="70dp"
             android:layout_height="wrap_content"
             android:onClick="onClickGo"
             android:text="go" />
+
+        <Button
+            android:id="@+id/wav"
+            android:layout_width="70dp"
+            android:layout_height="wrap_content"
+            android:onClick="onClickWav"
+            android:text="wav" />
     </LinearLayout>
 
     <TextView
@@ -79,7 +90,7 @@
         android:layout_height="wrap_content"
         android:text="TEXT"
         android:textAppearance="?android:attr/textAppearanceLarge"
-        android:textSize="14dp" />
+        android:textSize="10sp" />
 
 
     <!--<Button-->

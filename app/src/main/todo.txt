@@ -1,5 +1,66 @@
 
-- quitar sacudida
+----------------mensajes de cortesia
+    ok- en go
+    - en next
+    - al terminar dice que no te gusta
+    - al ir al principio dice "como iba esto"
+----------------
+NOW:
+    Problemas con diccionario
+        - conjucgacionenes no las encuentra
+        - conjugaciones le parecen palabras raras
+
+    Diccionario de palabra
+        - conjugaciones: https://es.bab.la/conjugacion/espanol/conduzco
+
+
+     lo que hay que esperar al empezar al empezar, garbage collector
+     el idioma no lo coge
+BUG:
+    Que se puedan leer los mensajes de voz tipo dpipipi desde cualquier punto del código (lanzando eventos de código?)
+
+
+
+
+NEXT
+ media session:
+    https://www.youtube.com/watch?v=FBC1FgWe5X4
+    - que no tenga que poner runUI en cada acción, que "vaya por dentro el poner eso" de la interfaz
+     - odiados  no apareece nada
+GORDOS
+    que funcione el boton bluetooth
+    Usar el media player
+    definir en BBDD pronunciaciones especiales
+    Contabilidad de tiempo de escucha y estadisiticas (cuantas veces, dias totales, media de tiempo por sesión, etc)
+    UNIT test
+    que sea un service, que no se apague por uso de memoria
+    es posible hacer un widget de portada?
+    por ahora el main es una actividad, esto lo podemos cambiar?
+
+Detalles
+    volver a poner lyrics o chistes entre medio
+    frases customizables desde BBDD
+    Lectura con pauseas al final de líneas
+    al apagar bluetooth que ponga pausa
+    lectura de mayúscualas?
+    cuando ya ha leido todos  avise
+    cuando se guarda en local, también se debe guardar el summary
+
+	- al quitar auricular que se pare
+		http://stackoverflow.com/questions/13610258/how-to-detect-when-a-user-plugs-headset-on-android-device-opposite-of-action-a
+
+Pruebas:
+
+------------- Diccionario
+API particular:
+    https://googledictionaryapi.eu-gb.mybluemix.net/?define=locuaces&lang=es
+
+RAE
+    https://dle.rae.es/srv/search?w=poto&m=form
+        desambiguar: (esto da un id)
+    https://dle.rae.es/srv/fetch/?id=TsCCMer%7CTsCTMKD
+
+-------------
 
 - poner boton bluetooth
 	tendré que hacer el service
@@ -12,12 +73,6 @@
 using media session
 	http://stackoverflow.com/questions/39410268/how-to-listen-to-action-down-key-pressed-event-in-android-onmediabuttonevent/39413753#39413753
 
-que sea un player.. (ya sea con el media controller o proceso BG)
-haspet
-lectura de mayúscualas?
-ver que se salta de libro en ocasiones
-mejor gestion de "cargar en memoria"
-
 ---- alto
 
 	cuando se borra los internos en parse?
@@ -25,18 +80,7 @@ mejor gestion de "cargar en memoria"
 	- hacer servicio?
 	- widget
 ---- medio
-	- que apareza el chap y book actual al cambiar, en edttext
 	- quitar activitidad
-
-
----- detalles
-	- al quitar auricular que se pare
-		http://stackoverflow.com/questions/13610258/how-to-detect-when-a-user-plugs-headset-on-android-device-opposite-of-action-a
---------------------------------------------
-	- al que funcione al salir de la actividad
-	- hacer widget en portada
-	- al salir de la app se le olvida cómo parar el sonido
-	- servicio para que no se interrumpa?
 
  /////////////////// nombre de engides y voces
   [EngineInfo{name=com.samsung.SMT}, EngineInfo{name=com.google.android.tts},   EngineInfo{name=com.googlecode.eyesfree.espeak}]
