@@ -3,7 +3,7 @@ package com.stupidpeople.cuentanos;
 import android.os.Build;
 import android.speech.tts.TextToSpeech;
 import android.speech.tts.Voice;
-import android.support.annotation.NonNull;
+import androidx.annotation.NonNull;
 
 import com.stupidpeople.cuentanos.Lector.TipoFrase;
 import com.stupidpeople.cuentanos.book.Chapter;

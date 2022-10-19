@@ -2,9 +2,11 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/Cuentame.iml" filepath="$PROJECT_DIR$/Cuentame.iml" />
-      <module fileurl="file://$PROJECT_DIR$/.idea/Cuentame_old.iml" filepath="$PROJECT_DIR$/.idea/Cuentame_old.iml" group="Cuentame_old" />
-      <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" group="Cuentame_old/app" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/Cuentame.iml" filepath="$PROJECT_DIR$/.idea/modules/Cuentame.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/app/Cuentame.app.iml" filepath="$PROJECT_DIR$/.idea/modules/app/Cuentame.app.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/app/Cuentame.app.androidTest.iml" filepath="$PROJECT_DIR$/.idea/modules/app/Cuentame.app.androidTest.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/app/Cuentame.app.main.iml" filepath="$PROJECT_DIR$/.idea/modules/app/Cuentame.app.main.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/app/Cuentame.app.unitTest.iml" filepath="$PROJECT_DIR$/.idea/modules/app/Cuentame.app.unitTest.iml" />
     </modules>
   </component>
 </project>

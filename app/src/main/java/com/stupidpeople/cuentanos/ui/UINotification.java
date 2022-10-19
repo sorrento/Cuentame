@@ -7,7 +7,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.support.v4.app.NotificationCompat;
+import androidx.core.app.NotificationCompat;
 
 import com.stupidpeople.cuentanos.R;
 import com.stupidpeople.cuentanos.book.Book;
@@ -118,7 +118,7 @@ public class UINotification extends UiGeneric {
                 .addAction(R.drawable.ic_next_white_24dp, "Next", nextPendingIntent)     // #2
                 // Apply the media style template
 //                .setStyle(new android.support.v4.media.app.Notification.MediaStyle()
-                .setStyle(new android.support.v4.media.app.NotificationCompat.MediaStyle()
+                .setStyle(new androidx.core.media.app.NotificationCompat.MediaStyle()
                                 .setShowActionsInCompactView(1 /* #1: pause button */)
 //                        .setMediaSession(mediaSession.getSessionToken())
                 )
@@ -142,7 +142,7 @@ public class UINotification extends UiGeneric {
                 // Show controls on lock screen even when user hides sensitive content.
                 .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
                 .setSmallIcon(R.drawable.ic_logo_white)
-                .setStyle(new android.support.v4.media.app.NotificationCompat.MediaStyle())
+                .setStyle(new androidx.core.media.app.NotificationCompat.MediaStyle())
                 .setShowWhen(false)
                 .setContentTitle(bookSummary.fakeTitle())
                 .setContentText(bookSummary.getFakeAuthor())

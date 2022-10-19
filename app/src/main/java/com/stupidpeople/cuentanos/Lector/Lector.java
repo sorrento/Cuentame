@@ -2,8 +2,8 @@ package com.stupidpeople.cuentanos.Lector;
 
 import android.content.Context;
 import android.content.Intent;
-import android.support.annotation.NonNull;
-import android.support.v4.content.LocalBroadcastManager;
+import androidx.annotation.NonNull;
+import androidx.core.content.LocalBroadcastManager;
 
 import com.parse.FindCallback;
 import com.parse.ParseException;

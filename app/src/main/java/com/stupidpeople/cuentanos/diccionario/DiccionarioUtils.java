@@ -1,6 +1,6 @@
 package com.stupidpeople.cuentanos.diccionario;
 
-import android.support.annotation.NonNull;
+import androidx.annotation.NonNull;
 
 import com.parse.FindCallback;
 import com.parse.ParseException;

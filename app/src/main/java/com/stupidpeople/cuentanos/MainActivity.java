@@ -7,14 +7,15 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.media.AudioManager;
 import android.os.Bundle;
-import android.support.annotation.NonNull;
-import android.support.v4.content.ContextCompat;
-import android.support.v4.content.LocalBroadcastManager;
-import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
 import android.widget.Toast;
+
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.ContextCompat;
+import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import com.stupidpeople.cuentanos.Lector.Lector;
 import com.stupidpeople.cuentanos.ui.ActionsInterface;
@@ -31,19 +32,19 @@ import cafe.adriel.androidaudioconverter.callback.ILoadCallback;
 
 public class MainActivity extends AppCompatActivity {
 
-    private static final int                       MEDIA_BUTTON_INTENT_EMPIRICAL_PRIORITY_VALUE = 10000;
+    private static final int MEDIA_BUTTON_INTENT_EMPIRICAL_PRIORITY_VALUE = 10000;
     //NotificationManager mNotificationManager;
     //    private BroadcastReceiver         eventsReceiver;
-    private              MediaButtonIntentReceiver mMediaButtonReceiver;
-    private              boolean                   interrupted                                  = false;
-    private              int                       iBuffer                                      = 0;
-    private              boolean                   mlocal;
-    private              AudioManager              manager;
-    private              Preferences               prefs;
-    private              Lector                    lector;
-    private              String                    tag                                          = "MAI";
+    private MediaButtonIntentReceiver mMediaButtonReceiver;
+    private boolean interrupted = false;
+    private int iBuffer = 0;
+    private boolean mlocal;
+    private AudioManager manager;
+    private Preferences prefs;
+    private Lector lector;
+    private String tag = "MAI";
     Oreja oreja;
-    private UIDev          devUi;
+    private UIDev devUi;
     private UINotification notificationUI;
 
     @NonNull
@@ -284,12 +285,12 @@ public class MainActivity extends AppCompatActivity {
 
     public class Oreja extends BroadcastReceiver {
         public static final String ACTION_STARTED_READING_CHAPTER = "started_reading_chapter";
-        public static final String ACTION_NEW_CHAPTER_LOADED      = "new_chapter_loaded";
-        public static final String ACTION_ENDED_READING_CHAPTER   = "ended_reading_chapter";
-        public static final String ACTION_OBTIENE_SUMMARY         = "obtiene_summary";
-        public static final String ACTION_STOPPED_READING_CHAP    = "stopped_reading";
-        public static final String ACTION_CHANGE_STORAGE_MODE     = "change_sotrage_mode";
-        public static final String ACTION_MP3FILEWRITTEN          = "mp3_file_written";
+        public static final String ACTION_NEW_CHAPTER_LOADED = "new_chapter_loaded";
+        public static final String ACTION_ENDED_READING_CHAPTER = "ended_reading_chapter";
+        public static final String ACTION_OBTIENE_SUMMARY = "obtiene_summary";
+        public static final String ACTION_STOPPED_READING_CHAP = "stopped_reading";
+        public static final String ACTION_CHANGE_STORAGE_MODE = "change_sotrage_mode";
+        public static final String ACTION_MP3FILEWRITTEN = "mp3_file_written";
 
         @Override
         public void onReceive(Context context, Intent intent) {
