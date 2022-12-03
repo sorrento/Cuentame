@@ -13,11 +13,14 @@ import android.view.View;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.content.ContextCompat;
+import androidx.lifecycle.Observer;
+import androidx.lifecycle.ViewModelProvider;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import com.stupidpeople.cuentanos.Lector.Lector;
+import com.stupidpeople.cuentanos.Lector.NameViewModel;
 import com.stupidpeople.cuentanos.ui.ActionsInterface;
 import com.stupidpeople.cuentanos.ui.UIDev;
 import com.stupidpeople.cuentanos.ui.UINotification;
@@ -25,10 +28,8 @@ import com.stupidpeople.cuentanos.ui.UiGeneric;
 import com.stupidpeople.cuentanos.utils.Preferences;
 import com.stupidpeople.cuentanos.utils.myLog;
 
-import java.io.File;
-
-import cafe.adriel.androidaudioconverter.AndroidAudioConverter;
-import cafe.adriel.androidaudioconverter.callback.ILoadCallback;
+//import cafe.adriel.androidaudioconverter.AndroidAudioConverter;
+//import cafe.adriel.androidaudioconverter.callback.ILoadCallback;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -46,6 +47,7 @@ public class MainActivity extends AppCompatActivity {
     Oreja oreja;
     private UIDev devUi;
     private UINotification notificationUI;
+    private NameViewModel model;
 
     @NonNull
     private static IntentFilter getIntentFilterLector() {
@@ -67,7 +69,22 @@ public class MainActivity extends AppCompatActivity {
 
         myLog.initialize();
         prefs = new Preferences(this);
-        LocalBroadcastManager localBroadcastManager = LocalBroadcastManager.getInstance(this);
+
+        // test livedata
+        // Get the ViewModel.
+//        model = new ViewModelProvider(this).get(NameViewModel.class);
+//
+//        // Create the observer which updates the UI.
+//        final Observer<String> nameObserver = new Observer<String>() {
+//            @Override
+//            public void onChanged(@Nullable final String newName) {
+//                // Update the UI, in this case, a TextView.
+////                nameTextView.setText(newName);
+//            }
+//        };
+//
+//        // Observe the LiveData, passing in this activity as the LifecycleOwner and the observer.
+//        model.getVoiceStatus().observe(this, nameObserver);
 
         //getmediaButtons();//Bluetooth
 
@@ -138,8 +155,7 @@ public class MainActivity extends AppCompatActivity {
         devUi = new UIDev(this, myUi, prefs);
 
         //UI notificaciones
-        notificationUI = new UINotification(myUi,
-                (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE), this);
+//        notificationUI = new UINotification(myUi, (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE), this);
 
 
         lector = new Lector(getApplicationContext(), prefs);
@@ -209,23 +225,23 @@ public class MainActivity extends AppCompatActivity {
 
     public void onClickWav(View view) {
         //Converter wav mp3
-        AndroidAudioConverter.load(this, new ILoadCallback() {
-            @Override
-            public void onSuccess() {
-                Toast.makeText(MainActivity.this, "cargado el converter", Toast.LENGTH_SHORT).show();
-
-                File[] Dirs = ContextCompat.getExternalFilesDirs(MainActivity.this, null);
-                String path = Dirs[1].getAbsolutePath();
-
-                lector.createMp3sLibroEntero(path);
-                // lector.createMp3s(10, 13, path);
-            }
-
-            @Override
-            public void onFailure(Exception error) {
-                Toast.makeText(MainActivity.this, "// FFmpeg is not supported by device", Toast.LENGTH_SHORT).show();
-            }
-        });
+//        AndroidAudioConverter.load(this, new ILoadCallback() {
+//            @Override
+//            public void onSuccess() {
+//                Toast.makeText(MainActivity.this, "cargado el converter", Toast.LENGTH_SHORT).show();
+//
+//                File[] Dirs = ContextCompat.getExternalFilesDirs(MainActivity.this, null);
+//                String path = Dirs[1].getAbsolutePath();
+//
+//                lector.createMp3sLibroEntero(path);
+//                // lector.createMp3s(10, 13, path);
+//            }
+//
+//            @Override
+//            public void onFailure(Exception error) {
+//                Toast.makeText(MainActivity.this, "// FFmpeg is not supported by device", Toast.LENGTH_SHORT).show();
+//            }
+//        });
 
 
     }
@@ -233,7 +249,7 @@ public class MainActivity extends AppCompatActivity {
     /**
      * Del Bluetooth
      */
-    private class MediaButtonIntentReceiver extends BroadcastReceiver {
+    private static class MediaButtonIntentReceiver extends BroadcastReceiver {
 
         public MediaButtonIntentReceiver() {
             super();
@@ -308,10 +324,8 @@ public class MainActivity extends AppCompatActivity {
                     notificationUI.updateBecauseStarted();
                     break;
                 case ACTION_OBTIENE_SUMMARY:
-                    devUi.updateBecauseNewBookLoaded(lector.getBook().getBookSummary(), lector.getBook(),
-                            prefs.getDisponibles());
-                    notificationUI.updateBecauseNewBookLoaded(lector.getBook().getBookSummary(),
-                            lector.getBook(), prefs.getDisponibles());
+                    devUi.updateBecauseNewBookLoaded(lector.getBook().getBookSummary(), lector.getBook(), prefs.getDisponibles());
+                    notificationUI.updateBecauseNewBookLoaded(lector.getBook().getBookSummary(), lector.getBook(), prefs.getDisponibles());
                     break;
                 case ACTION_ENDED_READING_CHAPTER:
                     //TODO complete

@@ -15,7 +15,7 @@ import java.io.File;
 import java.util.HashMap;
 import java.util.LinkedList;
 
-import cafe.adriel.androidaudioconverter.callback.IConvertCallback;
+//import cafe.adriel.androidaudioconverter.callback.IConvertCallback;
 
 import static com.stupidpeople.cuentanos.Lector.AudioUtils.wav2mp3;
 
@@ -127,32 +127,32 @@ public class Voice implements VoiceInterface {
     }
 
     private void cogeElSiguienteYConvierte() {
-        IConvertCallback cb = new IConvertCallback() {
-            @Override
-            public void onSuccess(File convertedFile) {
-                isConvetingMp3 = false;
-                String name = convertedFile.getName().split("\\.")[0];
-                myLog.add("OK, se ha convertido un mp3" + name, tag);
-
-                //remove the .wav
-                File wavFile = new File(mWavPath + "/" + name + ".wav");
-                wavFile.delete();
-                readerEvents.txt2fileOneFileWritten(Integer.parseInt(name));//para mostrar notificación
-
-                cogeElSiguienteYConvierte();
-            }
-
-            @Override
-            public void onFailure(Exception error) {
-                myLog.add("ha fallado un mp3" + error, tag);
-            }
-        };
+//        IConvertCallback cb = new IConvertCallback() {
+//            @Override
+//            public void onSuccess(File convertedFile) {
+//                isConvetingMp3 = false;
+//                String name = convertedFile.getName().split("\\.")[0];
+//                myLog.add("OK, se ha convertido un mp3" + name, tag);
+//
+//                //remove the .wav
+//                File wavFile = new File(mWavPath + "/" + name + ".wav");
+//                wavFile.delete();
+//                readerEvents.txt2fileOneFileWritten(Integer.parseInt(name));//para mostrar notificación
+//
+//                cogeElSiguienteYConvierte();
+//            }
+//
+//            @Override
+//            public void onFailure(Exception error) {
+//                myLog.add("ha fallado un mp3" + error, tag);
+//            }
+//        };
 
         String wavFile = wavFilesCola.pollFirst();
         if (wavFile != null) {
             isConvetingMp3 = true;
             myLog.add("vamos a intentar convertir un mp3" + wavFile, tag);
-            wav2mp3(mWavPath, wavFile, mContext, cb);
+            wav2mp3(mWavPath, wavFile, mContext);
         } else { //significa que ya ha terminado la cola
             readerEvents.txt2fileBunchProcessed();
         }
@@ -166,7 +166,7 @@ public class Voice implements VoiceInterface {
             if (isSpeakingChapter) {
                 readerEvents.voiceStartedSpeakChapter();
             }
-            myLog.add("onstartspeaking:" + utteranceId, tag);
+//            myLog.add("onstartspeaking:" + utteranceId, tag);
         }
 
         @Override
@@ -209,7 +209,7 @@ public class Voice implements VoiceInterface {
         @Override
         public void onStop(String utteranceId, boolean interrupted) {
             super.onStop(utteranceId, interrupted);
-            myLog.add("onstop utterance", tag);
+//            myLog.add("onstop utterance", tag);
         }
 
         private boolean isUtteranceOfChapter(String utteranceId) {

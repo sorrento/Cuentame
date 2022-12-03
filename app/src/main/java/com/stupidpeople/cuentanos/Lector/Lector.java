@@ -3,7 +3,7 @@ package com.stupidpeople.cuentanos.Lector;
 import android.content.Context;
 import android.content.Intent;
 import androidx.annotation.NonNull;
-import androidx.core.content.LocalBroadcastManager;
+//https://developer.android.com/jetpack/androidx/releases/localbroadcastmanager
 
 import com.parse.FindCallback;
 import com.parse.ParseException;
@@ -26,7 +26,7 @@ import static com.stupidpeople.cuentanos.Lector.AudioUtils.saveTextos2txt;
 public class Lector {
     public static final int                   BATCHSIZE     = 15;
     private final       Preferences           prefs;
-    private             LocalBroadcastManager localBroadcastManager;
+//    private             LocalBroadcastManager localBroadcastManager;
     private             ReaderEvents          readerEvents;
     private             Voice                 voice;
     private             String                tag           = "LEC";
@@ -37,7 +37,7 @@ public class Lector {
     public Lector(Context context, final Preferences myPrefs) {
 
         prefs = myPrefs;
-        localBroadcastManager = LocalBroadcastManager.getInstance(context);
+//        localBroadcastManager = LocalBroadcastManager.getInstance(context);
 
         readerEvents = new ReaderEvents() {
             @Override
@@ -53,7 +53,7 @@ public class Lector {
                     prefs.setLanguage(newLanguage);
                 }
 
-                localBroadcastManager.sendBroadcast(new Intent(MainActivity.Oreja.ACTION_OBTIENE_SUMMARY));
+//                localBroadcastManager.sendBroadcast(new Intent(MainActivity.Oreja.ACTION_OBTIENE_SUMMARY));
 
                 // si es retomar el libro
                 if (book.getCurrentChapterId() != 1)
@@ -64,12 +64,12 @@ public class Lector {
 
             @Override
             public void voiceStartedSpeakChapter() {
-                localBroadcastManager.sendBroadcast(new Intent(MainActivity.Oreja.ACTION_STARTED_READING_CHAPTER));
+//                localBroadcastManager.sendBroadcast(new Intent(MainActivity.Oreja.ACTION_STARTED_READING_CHAPTER));
             }
 
             @Override
             public void voiceInterrupted() {
-                localBroadcastManager.sendBroadcast(new Intent(MainActivity.Oreja.ACTION_STOPPED_READING_CHAP));
+//                localBroadcastManager.sendBroadcast(new Intent(MainActivity.Oreja.ACTION_STOPPED_READING_CHAP));
             }
 
             @Override
@@ -95,7 +95,7 @@ public class Lector {
                 Intent intent = new Intent(MainActivity.Oreja.ACTION_MP3FILEWRITTEN);
                 intent.putExtra("chapter", i);
                 intent.putExtra("total", book.getBookSummary().getNChapters());
-                localBroadcastManager.sendBroadcast(intent);
+//                localBroadcastManager.sendBroadcast(intent);
             }
 
             @Override

@@ -43,10 +43,10 @@ public class myLog {
         try {
             Log.d(TAG, text);
 
-            File logFile = new File(Environment.getExternalStorageDirectory(), folder + currentDateandTime + "_" + TAG + ".txt");
-            if (!logFile.exists()) {
-                logFile.createNewFile();
-            }
+//            File logFile = new File(Environment.getExternalStorageDirectory(), folder + currentDateandTime + "_" + TAG + ".txt");
+//            if (!logFile.exists()) {
+//                logFile.createNewFile();
+//            }
             SimpleDateFormat sdf                = new SimpleDateFormat("HH:mm:ss (dd)| ");
             String           currentDateandTime = sdf.format(new Date());
 
@@ -56,13 +56,13 @@ public class myLog {
 
             //TODO not sure if it put the tid of log...
             //BufferedWriter for performance, true to set append to file flag
-            BufferedWriter buf = new BufferedWriter(new FileWriter(logFile, true));
-//            buf.append(currentDateandTime + pid + "|" + tid + ":" + text);
-            buf.append(currentDateandTime + ":" + text);
-            buf.newLine();
-            buf.flush();
-            buf.close();
-        } catch (IOException e) {
+//            BufferedWriter buf = new BufferedWriter(new FileWriter(logFile, true));
+////            buf.append(currentDateandTime + pid + "|" + tid + ":" + text);
+//            buf.append(currentDateandTime + ":" + text);
+//            buf.newLine();
+//            buf.flush();
+//            buf.close();
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
