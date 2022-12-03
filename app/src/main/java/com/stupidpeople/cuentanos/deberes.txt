@@ -1,0 +1,4 @@
+- habilitar la notificación
+- entender qué es lo que no funciona sin los broadcaster
+- verificar que no se cierra el servicio
+- los mensajes de cortesía se interrumpen a sí mismos
