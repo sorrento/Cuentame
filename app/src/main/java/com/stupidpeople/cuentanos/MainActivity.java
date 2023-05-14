@@ -28,19 +28,11 @@ import com.stupidpeople.cuentanos.ui.UiGeneric;
 import com.stupidpeople.cuentanos.utils.Preferences;
 import com.stupidpeople.cuentanos.utils.myLog;
 
-//import cafe.adriel.androidaudioconverter.AndroidAudioConverter;
-//import cafe.adriel.androidaudioconverter.callback.ILoadCallback;
 
 public class MainActivity extends AppCompatActivity {
 
     private static final int MEDIA_BUTTON_INTENT_EMPIRICAL_PRIORITY_VALUE = 10000;
-    //NotificationManager mNotificationManager;
-    //    private BroadcastReceiver         eventsReceiver;
     private MediaButtonIntentReceiver mMediaButtonReceiver;
-    private boolean interrupted = false;
-    private int iBuffer = 0;
-    private boolean mlocal;
-    private AudioManager manager;
     private Preferences prefs;
     private Lector lector;
     private String tag = "MAI";
@@ -69,34 +61,6 @@ public class MainActivity extends AppCompatActivity {
 
         myLog.initialize();
         prefs = new Preferences(this);
-
-        // test livedata
-        // Get the ViewModel.
-//        model = new ViewModelProvider(this).get(NameViewModel.class);
-//
-//        // Create the observer which updates the UI.
-//        final Observer<String> nameObserver = new Observer<String>() {
-//            @Override
-//            public void onChanged(@Nullable final String newName) {
-//                // Update the UI, in this case, a TextView.
-////                nameTextView.setText(newName);
-//            }
-//        };
-//
-//        // Observe the LiveData, passing in this activity as the LifecycleOwner and the observer.
-//        model.getVoiceStatus().observe(this, nameObserver);
-
-        //getmediaButtons();//Bluetooth
-
-        /*//////PRUEBA
-        String text = DiccionarioUtils.getSampleChapterText();
-        Definator definator = new Definator(text, "ES", new ArrayCallback() {
-            @Override
-            public void onDone(List<String> arr, List<Double> bestScores) {
-
-            }
-        });
-        //////PRUEBA*/
 
 
         // Eventos
@@ -153,21 +117,7 @@ public class MainActivity extends AppCompatActivity {
 
         //UI dev
         devUi = new UIDev(this, myUi, prefs);
-
-        //UI notificaciones
-//        notificationUI = new UINotification(myUi, (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE), this);
-
-
         lector = new Lector(getApplicationContext(), prefs);
-    }
-
-    private void getmediaButtons() {
-        // Bluetooth controls
-        // manager = (AudioManager) getSystemService(AUDIO_SERVICE);
-        mMediaButtonReceiver = new MediaButtonIntentReceiver();
-        IntentFilter mediaFilter = new IntentFilter(Intent.ACTION_MEDIA_BUTTON);
-        mediaFilter.setPriority(MEDIA_BUTTON_INTENT_EMPIRICAL_PRIORITY_VALUE);
-        registerReceiver(mMediaButtonReceiver, mediaFilter);
     }
 
 
@@ -224,26 +174,6 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void onClickWav(View view) {
-        //Converter wav mp3
-//        AndroidAudioConverter.load(this, new ILoadCallback() {
-//            @Override
-//            public void onSuccess() {
-//                Toast.makeText(MainActivity.this, "cargado el converter", Toast.LENGTH_SHORT).show();
-//
-//                File[] Dirs = ContextCompat.getExternalFilesDirs(MainActivity.this, null);
-//                String path = Dirs[1].getAbsolutePath();
-//
-//                lector.createMp3sLibroEntero(path);
-//                // lector.createMp3s(10, 13, path);
-//            }
-//
-//            @Override
-//            public void onFailure(Exception error) {
-//                Toast.makeText(MainActivity.this, "// FFmpeg is not supported by device", Toast.LENGTH_SHORT).show();
-//            }
-//        });
-
-
     }
 
     /**

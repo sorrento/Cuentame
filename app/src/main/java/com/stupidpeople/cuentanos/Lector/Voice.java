@@ -1,7 +1,6 @@
 package com.stupidpeople.cuentanos.Lector;
 
 import android.content.Context;
-import android.os.Build;
 import android.speech.tts.TextToSpeech;
 import android.speech.tts.UtteranceProgressListener;
 
@@ -11,13 +10,6 @@ import com.stupidpeople.cuentanos.book.Chapter;
 import com.stupidpeople.cuentanos.utils.myLog;
 import com.stupidpeople.cuentanos.utils.text;
 
-import java.io.File;
-import java.util.HashMap;
-import java.util.LinkedList;
-
-//import cafe.adriel.androidaudioconverter.callback.IConvertCallback;
-
-import static com.stupidpeople.cuentanos.Lector.AudioUtils.wav2mp3;
 
 public class Voice implements VoiceInterface {
 
@@ -30,9 +22,6 @@ public class Voice implements VoiceInterface {
     private              boolean            isSpeakingChapter = false;
     private              String             tag               = "VOICE";
     private              boolean            forzadoACallar    = false;
-    private              String             mWavPath;
-    private              LinkedList<String> wavFilesCola;
-    private              boolean            isConvetingMp3    = false;
 
     Voice(String currentLaguage, Context context, ReaderEvents re) {
 
@@ -42,7 +31,6 @@ public class Voice implements VoiceInterface {
         //this.voiceEventInterface = voiceEventInterface;
         getBestTTS();
 
-        wavFilesCola = new LinkedList<>();
     }
 
     /**
@@ -109,55 +97,6 @@ public class Voice implements VoiceInterface {
         Speak.speak(s, true, "[Definition]" + text.shortenText(s, 100), tts);
     }
 
-    void text2file(String txt, String path, String filename) {
-        mWavPath = path;
-        String utt          = UTTSAVEPREFIX + "_" + filename;
-        String destFileName = path + '/' + filename + ".wav";
-
-//        if (isLastText) utt += "_" + "Last";
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            File fileTTS = new File(destFileName);
-            tts.synthesizeToFile(txt, null, fileTTS, utt);
-        } else {
-            HashMap<String, String> map = new HashMap<>();
-            map.put(TextToSpeech.Engine.KEY_PARAM_UTTERANCE_ID, utt);
-            tts.synthesizeToFile(txt, map, destFileName);
-        }
-    }
-
-    private void cogeElSiguienteYConvierte() {
-//        IConvertCallback cb = new IConvertCallback() {
-//            @Override
-//            public void onSuccess(File convertedFile) {
-//                isConvetingMp3 = false;
-//                String name = convertedFile.getName().split("\\.")[0];
-//                myLog.add("OK, se ha convertido un mp3" + name, tag);
-//
-//                //remove the .wav
-//                File wavFile = new File(mWavPath + "/" + name + ".wav");
-//                wavFile.delete();
-//                readerEvents.txt2fileOneFileWritten(Integer.parseInt(name));//para mostrar notificación
-//
-//                cogeElSiguienteYConvierte();
-//            }
-//
-//            @Override
-//            public void onFailure(Exception error) {
-//                myLog.add("ha fallado un mp3" + error, tag);
-//            }
-//        };
-
-        String wavFile = wavFilesCola.pollFirst();
-        if (wavFile != null) {
-            isConvetingMp3 = true;
-            myLog.add("vamos a intentar convertir un mp3" + wavFile, tag);
-            wav2mp3(mWavPath, wavFile, mContext);
-        } else { //significa que ya ha terminado la cola
-            readerEvents.txt2fileBunchProcessed();
-        }
-    }
-
     class uListener extends UtteranceProgressListener {
 
         @Override
@@ -166,7 +105,7 @@ public class Voice implements VoiceInterface {
             if (isSpeakingChapter) {
                 readerEvents.voiceStartedSpeakChapter();
             }
-//            myLog.add("onstartspeaking:" + utteranceId, tag);
+            myLog.add("onstartspeaking:" + utteranceId, tag);
         }
 
         @Override
@@ -181,9 +120,6 @@ public class Voice implements VoiceInterface {
                     readerEvents.voiceEndedReadingChapter();
                     myLog.add("on done, terminé de leer chapter", tag);
                 } else if (utteranceId.startsWith(UTTSAVEPREFIX)) { //lectura de file a chapter
-                    final String wavFile = utteranceId.split("_")[1];
-                    wavFilesCola.add(wavFile);
-                    if (!isConvetingMp3) cogeElSiguienteYConvierte();
 
                 }
             }
@@ -217,34 +153,5 @@ public class Voice implements VoiceInterface {
         }
     }
 
-    class ObjetoHablado {
-        private final TipoFrase mTipofrase;
-        private final String    mTexto;
-        private final String    mUtterance;
-        private       int       nChapterId;
-        private       boolean   mIsChapter = false;
 
-        public ObjetoHablado(TipoFrase tipoFrase, String texto, String Utterance) {
-            mTipofrase = tipoFrase;
-            mTexto = texto;
-            mUtterance = Utterance;
-
-        }
-
-        public ObjetoHablado(Chapter chapter) {
-            mTipofrase = TipoFrase.CHAPTER;
-            mTexto = chapter.getProcessedText();
-            mUtterance = chapter.getUtterance();
-            mIsChapter = true;
-            nChapterId = chapter.getChapterId();
-        }
-
-        public boolean isChapter() {
-            return mTipofrase == TipoFrase.CHAPTER;
-        }
-
-        public int getChapterId() {
-            return nChapterId;
-        }
-    }
 }

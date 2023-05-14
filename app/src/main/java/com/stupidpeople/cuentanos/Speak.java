@@ -19,8 +19,6 @@ public class Speak {
 
     private static String tag;
 
-    //TODO que los mensajes de voz estén en un archivo o en BBDD. Que se actualicen cuando se lee un libro entero
-    //TODO poner en inggles tambien
 
     public static String generaMsgDondeMeQuede(@NonNull String lan) {
         final ArrayList<String> msg = new ArrayList<>();
@@ -91,12 +89,11 @@ public class Speak {
         }
     }
 
-    private static String generaBienvenida(String lan) {
-        String welcome = "Hola, te voy a contar algunas de las historias que más me gustan. Espero que a ti también." +
+    private static String generaBienvenida() {
+
+        return "Hola, te voy a contar algunas de las historias que más me gustan. Espero que a ti también." +
                 " Si no te gusta como suena mi voz, instala un sintetizador nuevo. Busca en el google play poniendo TTS." +
                 " Vamos a ver...";
-
-        return welcome;
     }
 
     static String generaMsgNoTeGustaVeamosOtro(@NonNull String lan) {
@@ -166,7 +163,7 @@ public class Speak {
 
         switch (tipoFrase) {
             case WELCOME:
-                txt = generaBienvenida(lan);
+                txt = generaBienvenida();
                 break;
             case DONDE_ME_QUEDE_RETOMAR:
                 txt = generaMsgDondeMeQuede(lan);
